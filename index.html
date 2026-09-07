@@ -90,7 +90,7 @@ svg.ic .f{fill:currentColor;stroke:none}
 #nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav) + var(--sab));
   padding:0 var(--sar) var(--sab) var(--sal);background:rgba(10,10,9,.82);
   transform:translateY(0);transition:transform 200ms var(--e);will-change:transform;
-  -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
   border-top:1px solid var(--ln);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));z-index:40}
 #nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   color:var(--ink3);font-size:9.5px;letter-spacing:.02em;height:var(--nav);position:relative;
@@ -239,6 +239,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border:none;border-ra
 /* ---------- Fotos ---------- */
 img[data-ph]{opacity:0}
 img.phload{opacity:1;transition:opacity 420ms var(--e)}
+img.phready{opacity:1}
 .photostrip{display:flex;gap:9px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .photostrip::-webkit-scrollbar{display:none}
 .photostrip img{width:78px;height:78px;object-fit:cover;border-radius:10px;flex:none;background:var(--s2)}
@@ -363,9 +364,11 @@ table.cmp td.win{color:var(--ink);font-weight:600}
 /* Sheet statt System-Dialog */
 @keyframes sheetin{from{transform:translateY(100%)}55%{transform:translateY(-4px)}to{transform:none}}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes scrimin{from{background:rgba(4,4,4,0)}to{background:rgba(4,4,4,.62)}}
 .sheetbg{position:fixed;inset:0;background:rgba(4,4,4,.62);z-index:60;display:flex;align-items:flex-end;
-  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:fadein 220ms var(--e) both}
-.sheetbg.out{animation:fadein 180ms var(--e) reverse both}
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  animation:scrimin 220ms var(--e) both}
+.sheetbg.out{animation:scrimin 180ms var(--e) reverse both}
 .sheetbx{background:var(--s1);width:100%;border-radius:20px 20px 0 0;
   padding:10px calc(var(--sar) + 20px) calc(22px + var(--sab)) calc(var(--sal) + 20px);
   max-height:min(88vh,720px);overflow-y:auto;overscroll-behavior:contain;
@@ -549,6 +552,11 @@ body.hassel #nav{opacity:.5}
 .banner button{margin-left:auto;flex:none;color:var(--ink);font-size:12.5px;font-weight:500;
   border:1px solid var(--ln2);border-radius:8px;padding:7px 11px;white-space:nowrap}
 .banner.warn{border-color:rgba(198,164,94,.34);background:rgba(198,164,94,.06)}
+.verline{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink3);
+  padding:2px 0 16px;letter-spacing:0}
+.verline b{color:var(--gold);font-weight:500}
+.verline button{margin-left:auto;color:var(--ink2);font-size:12px;border-bottom:1px solid var(--ln2)}
+.verline button:disabled{opacity:.5}
 
 /* ---------- Gruppenüberschrift in der Liste ---------- */
 .ghead{grid-column:1/-1;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);
@@ -668,7 +676,7 @@ body.hassel #nav{opacity:.5}
   transform:translate3d(0,calc(-1 * var(--kb)),0);
   transition:transform 200ms var(--e);will-change:transform;
   padding:11px 20px calc(11px);background:rgba(10,10,9,.9);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
   border-top:1px solid var(--ln);display:flex;gap:9px}
 body.hasact #app{padding-bottom:calc(var(--nav) + var(--sab) + 90px)}
 
@@ -851,6 +859,7 @@ body.kbopen .toast{bottom:calc(var(--kb) + 18px)}
    ============================================================ */
 
 /* ---------- Konstanten ---------- */
+const APP_VERSION = "14";   /* zieht mit dem Service-Worker-Cache mit */
 const CUR = {
   CNY:{sym:"¥", name:"RMB"},
   USD:{sym:"$", name:"USD"},
@@ -1145,10 +1154,15 @@ async function loadPhotoInto(el){
   const id = el.dataset.ph;
   if(!id) return;
   el.removeAttribute("data-ph");
-  const url = await photoUrl(id, el.dataset.full !== "1");
+  const thumb = el.dataset.full !== "1";
+  const cached = S.photoUrls.has((thumb ? "t:" : "f:") + id);
+  const url = await photoUrl(id, thumb);
   if(!url) return;
   el.src = url;
-  requestAnimationFrame(() => el.classList.add("phload"));
+  /* War es schon geladen, ist es sofort da — sonst blinkt bei jeder
+     Aktualisierung die ganze Liste neu auf. */
+  if(cached) el.classList.add("phready");
+  else requestAnimationFrame(() => el.classList.add("phload"));
 }
 function hydratePhotos(root){
   const nodes = (root || document).querySelectorAll("img[data-ph]");
@@ -3312,6 +3326,17 @@ function banners(){
        + ' Alles liegt nur auf diesem Gerät.</span><button onclick="go(\'/backup\')">Sichern</button></div>';
   return h ? '<div style="padding-top:6px">' + h + '</div>' : "";
 }
+async function lookForUpdate(btn){
+  if(btn){ btn.disabled = true; btn.textContent = "sucht…"; }
+  try{
+    const reg = await navigator.serviceWorker.getRegistration();
+    if(reg) await reg.update();
+    await new Promise(r => setTimeout(r, 1200));
+    if(S.swWaiting){ toast("Neue Fassung bereit."); render(); return; }
+    toast("Du hast die neueste Fassung (" + APP_VERSION + ").");
+  }catch(e){ toast("Prüfen nicht möglich — bist du offline?"); }
+  if(btn){ btn.disabled = false; btn.textContent = "Auf Update prüfen"; }
+}
 function applyUpdate(){
   if(S.swWaiting){ S.swWaiting.postMessage({type:"skipWaiting"}); }
   setTimeout(() => location.reload(), 250);
@@ -3346,7 +3371,11 @@ function viewSettings(){
   const w = S.cfg.weights, r = S.cfg.rates, c = S.cfg;
   const modes = { off:"Aus", landed:"Einstandskosten", sales:"Mit Verkauf" };
   return hdr("Einstellungen", {back:true})
+   + banners()
    + '<div class="pad">'
+   + '<div class="verline">Fassung ' + APP_VERSION
+     + (S.swWaiting ? ' · <b>neue liegt bereit</b>' : "")
+     + '<button onclick="lookForUpdate(this)">Auf Update prüfen</button></div>'
 
    + '<div class="lbl-sec" style="margin-top:6px">Wechselkurse</div>'
    + '<div class="pricebox">'
@@ -3466,6 +3495,7 @@ async function onboard(){
 }
 
 /* ---------- Router ---------- */
+let LAST_PAINT = null;
 function render(){
   const r = route();
   const seg = r.split("?")[0].split("/");
@@ -3501,16 +3531,25 @@ function render(){
   // Vollbilder gehoeren zur verlassenen Seite. Nur behalten, solange die
   // Vollbildanzeige offen ist — die haengt ausserhalb von #app.
   if(!VIEWER) releaseFullPhotos();
+  /* Die Eintrittsanimation gehoert zum Seitenwechsel, nicht zu jeder
+     Aktualisierung. render() laeuft bei jedem Statuschip, jedem
+     gespeicherten Feld, jedem Filter — die ganze Seite dabei erneut
+     einzublenden sieht unruhig aus und kostet auf 120 Hz jedes Mal
+     einen Neuaufbau. */
+  const frisch = r !== LAST_PAINT;
+  LAST_PAINT = r;
   app.classList.remove("enter");
-  void app.offsetWidth;
-  app.classList.add("enter");
+  if(frisch){
+    void app.offsetWidth;
+    app.classList.add("enter");
+  }
   const act = app.querySelector(".actbar");
   if(act){ act.id = "actbar"; document.body.appendChild(act); }
   document.body.classList.toggle("hasact", !!act);
   armLongPress(app);
   renderNav();
   hydratePhotos(app);
-  countUp();
+  if(frisch) countUp();
   if(document.getElementById("storage")) showStorage();
 }
 
@@ -3518,20 +3557,45 @@ function render(){
 /* iOS verschiebt bei geoeffneter Tastatur nicht das Layout, sondern nur das
    sichtbare Fenster. Ohne diese Korrektur landet eine unten fixierte Leiste
    hinter der Tastatur oder klebt mitten im Bild. */
+/* Der naive Weg — innerHeight minus visualViewport.height — ist falsch.
+   In einem Safari-Tab ist der sichtbare Bereich schon ohne Tastatur um die
+   Hoehe der Safari-Leisten kleiner (50 bis 90 Punkte). Genau um diesen
+   Betrag ist die untere Leiste dann zu hoch gerutscht, und ueber 80 Punkten
+   ist die Navigation ganz weggefahren.
+   Verlaesslich ist nur: es liegt eine Tastatur an, wenn ein Textfeld den
+   Fokus hat UND der fehlende Bereich Tastaturgroesse hat. */
+function typingNow(){
+  const a = document.activeElement;
+  if(!a || a === document.body) return false;
+  if(a.isContentEditable) return true;
+  const t = a.tagName;
+  if(t === "TEXTAREA") return true;
+  if(t !== "INPUT") return false;
+  return !/^(button|checkbox|radio|file|submit|reset|range|color|image)$/i
+           .test(a.getAttribute("type") || "text");
+}
 function trackKeyboard(){
   const vv = window.visualViewport;
   if(!vv) return;
-  let raf = 0;
+  let raf = 0, kbNow = 0;
   const apply = () => {
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(() => {
-      const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+      const luecke = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+      /* Unter 120 Punkten ist es keine Tastatur, sondern Browser-Bedienung. */
+      const kb = (typingNow() && luecke >= 120) ? luecke : 0;
+      if(kb === kbNow) return;
+      kbNow = kb;
       document.documentElement.style.setProperty("--kb", kb + "px");
-      document.body.classList.toggle("kbopen", kb > 80);
+      document.body.classList.toggle("kbopen", kb > 0);
     });
   };
   vv.addEventListener("resize", apply);
   vv.addEventListener("scroll", apply);
+  /* Fokuswechsel ist das eigentliche Signal — die Groessenaenderung kommt
+     auf iOS je nach Version davor oder danach. */
+  document.addEventListener("focusin", () => setTimeout(apply, 60));
+  document.addEventListener("focusout", () => setTimeout(apply, 60));
   window.addEventListener("orientationchange", () => setTimeout(apply, 300));
   apply();
 }
@@ -3820,6 +3884,12 @@ async function openSupPhoto(id, kind){
     try{
       const reg = await navigator.serviceWorker.register("sw.js");
       if(reg.waiting){ S.swWaiting = reg.waiting; render(); }
+      /* Sonst merkt man eine neue Fassung erst beim naechsten Kaltstart —
+         und der kommt bei einer App auf dem Homescreen tagelang nicht. */
+      const suchen = () => { if(navigator.onLine) reg.update().catch(()=>{}); };
+      document.addEventListener("visibilitychange", () => { if(!document.hidden) suchen(); });
+      window.addEventListener("online", suchen);
+      setInterval(suchen, 900000);
       reg.addEventListener("updatefound", () => {
         const nw = reg.installing;
         if(!nw) return;
@@ -4099,10 +4169,32 @@ function viewScan(){
 
   /* Alles Weitere ist im Gedränge Ballast und klappt darum zu. */
   h += '<details class="more" style="margin-top:22px"' + (S.scanMore ? " open" : "") + ' ontoggle="S.scanMore=this.open">'
-    + '<summary>' + ic("chev","s") + 'Name, Kategorie und Preisart</summary>'
+    + '<summary>' + ic("chev","s") + 'Maße, Name, Kategorie und Preisart</summary>'
     + '<div class="inner">'
-      + '<div class="field"><label>Name</label>'
+      + '<div class="two"><div class="field"><label>Name</label>'
         + '<input class="inp" id="ttl" placeholder="z. B. Cloud Sofa 03" value="' + esc(d.title) + '" oninput="S.draft.title=this.value"></div>'
+        + '<div class="field"><label>Modellnr.</label>'
+        + '<input class="inp" id="dsku" placeholder="HT-8827" value="' + esc(d.sku) + '" oninput="dSet(\'sku\',this.value)"></div></div>'
+
+      + '<div class="field"><label>Produktmaß L × B × H in cm</label><div class="three">'
+        + ["l","w","h"].map(k => '<input class="inp num" inputmode="decimal" id="dd-' + k + '" placeholder="'
+           + k.toUpperCase() + '" value="' + ((d.dims && d.dims[k]) || "") + '" '
+           + 'oninput="dDim(\'dims\',\'' + k + '\',this.value)">').join("")
+        + '</div></div>'
+
+      + '<div class="field"><label>Kartonmaß L × B × H in cm</label><div class="three">'
+        + ["l","w","h"].map(k => '<input class="inp num" inputmode="decimal" id="dk-' + k + '" placeholder="'
+           + k.toUpperCase() + '" value="' + ((d.carton && d.carton[k]) || "") + '" '
+           + 'oninput="dDim(\'carton\',\'' + k + '\',this.value)">').join("")
+        + '</div><div class="help" id="dvol">' + draftVolLine(d) + '</div></div>'
+
+      + '<div class="two"><div class="field"><label>MOQ</label>'
+        + '<input class="inp num" inputmode="numeric" placeholder="10" value="' + (d.moq || "") + '" '
+        + 'oninput="dNum(\'moq\',this.value)"></div>'
+        + '<div class="field"><label>Material</label>'
+        + '<input class="inp" placeholder="Bouclé / Aluminium" value="' + esc(d.material) + '" '
+        + 'oninput="dSet(\'material\',this.value)"></div></div>'
+
       + '<div class="field"><label>Preisart</label><div class="chipset">'
         + PRICE_KINDS.map(k => '<button class="' + (d.price.kind===k?"on":"") + '" onclick="setKind(\'' + k + '\')">' + k + '</button>').join("")
         + '</div><div class="help">Wird für den nächsten Artikel am selben Stand übernommen.</div></div>'
@@ -4117,6 +4209,27 @@ function viewScan(){
       + '<button class="btn pri" onclick="saveDraft(1)">Weiter am Stand</button>'
     + '</div>';
   return h;
+}
+function dSet(k, v){ if(S.draft) S.draft[k] = v; }
+function dNum(k, v){
+  if(!S.draft) return;
+  const n = parseFloat(String(v).replace(",","."));
+  S.draft[k] = isNaN(n) ? null : n;
+}
+function dDim(which, k, v){
+  if(!S.draft) return;
+  S.draft[which] = S.draft[which] || {};
+  const n = parseFloat(String(v).replace(",","."));
+  if(isNaN(n) || n <= 0) delete S.draft[which][k]; else S.draft[which][k] = n;
+  const el = document.getElementById("dvol");
+  if(el) el.textContent = draftVolLine(S.draft);
+}
+/* Das Volumen laeuft beim Tippen mit — daran haengen Fracht und Container. */
+function draftVolLine(d){
+  const k = cbm(d.carton), pv = cbm(d.dims);
+  if(k) return "Volumen " + nf(k,3) + " m³ — damit wird Fracht und Container gerechnet.";
+  if(pv) return "Produktvolumen " + nf(pv,3) + " m³. Für Fracht zählt der Karton, nicht das Möbel.";
+  return "Für Fracht und Container zählt der Karton, nicht das Möbel.";
 }
 function newDraft(inherit){
   return {

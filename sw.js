@@ -1,7 +1,7 @@
 /* SOURCE — Service Worker.
    Cacht die App-Shell, damit die App offline startet.
    Die eigentlichen Daten liegen in IndexedDB, nicht hier. */
-const CACHE = "source-v13";
+const CACHE = "source-v14";
 const SHELL = [
   "./",
   "./index.html",

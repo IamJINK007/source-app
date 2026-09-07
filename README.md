@@ -346,6 +346,51 @@ Vorschau heruntergerechnet.
 Und `createImageBitmap` bekommt jetzt `imageOrientation: "from-image"`. Ohne
 das ignoriert es die EXIF-Drehung — hochkant fotografierte Schränke lagen quer.
 
+## Maße schon beim Erfassen
+
+Der Erfassen-Bildschirm hatte lange nur Name, Kategorie und Preisart hinter dem
+Aufklapper — mit dem Maßband am Stand kam man an kein Maßfeld heran. Jetzt
+stehen dort **Produktmaß, Kartonmaß, Modellnummer, MOQ und Material**, mit
+mitlaufendem Volumen in m³ während man tippt. Zugeklappt bleibt der Bildschirm
+so schnell wie vorher: Foto, Preis, Stand, Status.
+
+## Warum die untere Leiste zu hoch saß
+
+Die Tastaturerkennung rechnete `innerHeight − visualViewport.height`. In einem
+Safari-Tab ist der sichtbare Bereich aber schon **ohne** Tastatur um die Höhe
+der Safari-Leisten kleiner, 50 bis 90 Punkte. Genau um diesen Betrag rutschte
+die Aktionsleiste nach oben — und über 80 Punkten fuhr die Navigation ganz weg.
+
+Verlässlich ist nur die Kombination: ein **Textfeld hat den Fokus** *und* der
+fehlende Bereich hat Tastaturgröße (mindestens 120 Punkte). Fokuswechsel lösen
+die Neuberechnung mit aus, weil iOS die Größenänderung je nach Version davor
+oder danach meldet.
+
+## Warum die Animationen unruhig wirkten
+
+`render()` baut die Seite neu auf und lief bei **jedem** Statuschip, jedem
+gespeicherten Feld, jedem Filter — und spielte dabei jedes Mal die komplette
+Eintrittsanimation samt Zahlenzähler und Bild-Einblendung neu ab. Ein Tipp auf
+„Must Buy" ließ die ganze Seite noch einmal von unten einfliegen.
+
+Die Eintrittsanimation gehört zum Seitenwechsel. Bleibt die Route gleich, wird
+nur der Inhalt getauscht: kein Neueinblenden, kein Hochzählen, und Bilder, die
+schon geladen waren, sind sofort da statt erneut aufzublenden.
+
+Dazu zwei teure Stellen entschärft: der Sheet-Hintergrund animierte Deckkraft
+**auf** einem unscharfen Vollbild-Layer — das zwingt iOS, den Weichzeichner in
+jedem Bild neu zu rechnen; jetzt bleibt die Unschärfe konstant und nur die
+Farbe fährt hoch. Und die vollbreiten Leisten filtern nur noch Unschärfe statt
+zusätzlich Sättigung. Animiert werden ausschließlich `transform` und `opacity`.
+
+## Welche Fassung läuft
+
+Ganz oben in den Einstellungen steht die Fassungsnummer und ein Knopf **„Auf
+Update prüfen"**. Die App sieht außerdem selbst nach, sobald sie in den
+Vordergrund kommt, wenn das Netz zurückkehrt und alle 15 Minuten — sonst merkt
+man eine neue Fassung erst beim nächsten Kaltstart, und der kommt bei einer App
+auf dem Homescreen tagelang nicht.
+
 ## Wenn etwas schiefgeht
 
 Auf einer Messe ist ein **stiller** Fehler das Schlimmste: man tippt weiter und
