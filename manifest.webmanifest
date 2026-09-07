@@ -1,0 +1,26 @@
+{
+  "name": "SOURCE — Sourcing",
+  "short_name": "SOURCE",
+  "description": "Produkte auf Möbelmessen erfassen, umrechnen, kalkulieren und vergleichen. Offline, lokal auf dem Gerät.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0A09",
+  "theme_color": "#0A0A09",
+  "lang": "de",
+  "categories": ["business", "productivity", "shopping"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Produkt erfassen", "short_name": "Erfassen", "url": "./index.html#/scan",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Inbox", "short_name": "Inbox", "url": "./index.html#/inbox",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Container-Planer", "short_name": "Container", "url": "./index.html#/container",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+  ]
+}

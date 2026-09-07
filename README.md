@@ -1,0 +1,234 @@
+# SOURCE
+
+Sourcing-App für Möbelmessen. Läuft lokal auf dem iPhone, funktioniert
+vollständig offline, speichert alles ausschließlich auf dem Gerät.
+
+Konzept: [`SOURCE-KONZEPT.md`](SOURCE-KONZEPT.md)
+
+---
+
+## Erfassen
+
+Am Stand hast du zehn bis zwanzig Sekunden. Der Erfassen-Screen besteht darum
+aus drei Dingen: einer **bildschirmfüllenden Aufnahmefläche**, einem großen
+Preisfeld und einer **festen Aktionsleiste**, die immer sichtbar bleibt — du
+musst nie ans Seitenende scrollen, um zu speichern. Name, Kategorie und
+Preisart sitzen hinter einem Aufklapper; im Gedränge sind sie Ballast, im Hotel
+zwei Taps entfernt. Der einzige Pflicht-Tap ist **Speichern**: ein Produkt darf
+mit nichts als einem Foto in der Datenbank landen, alles Unvollständige wandert
+in die Inbox.
+
+- Kamera oder Fotomediathek, beliebig viele Fotos je Produkt
+- **Fotorollen**: Produkt, Preisschild, Visitenkarte, Messestand, Katalog, Detail
+- **„Speichern & nächstes"** vererbt Messe, Stand, Lieferant, Währung und Preisart
+- Sterne-Status: Must Buy, Favorit, Vielleicht, Nein
+- Vollbild-Anzeige mit Wischen, Rollenwechsel und Titelbild-Auswahl
+- **Sprachnotizen** direkt im Erfassen-Flow. Hände voll, laut am Stand, keine
+  Lust zu tippen — einsprechen und abends abschreiben. Bis drei Minuten je
+  Aufnahme, liegen wie alles andere lokal im Gerät und wandern mit ins Backup.
+- Schnelltasten für Preisschild und Visitenkarte, damit die Rolle gleich stimmt
+
+## Preis und Währung
+
+- RMB, USD und EUR. Die **Leitwährung** — die, in der tatsächlich angeboten
+  wurde — wird gespeichert und ist immer die Rechenbasis. Nie hin und zurück.
+- **Incoterm ist ein eigenes Feld** (EXW / FOB / CIF / DDP) und wird pro Stand
+  vererbt, statt auf „unbekannt" zu stehen.
+- Preisbasis pro Stück, pro Set oder pro Karton. MOQ separat.
+- Kurse über drei Quellen holbar, mit Zeitstempel gecacht, jederzeit von Hand
+  überschreibbar. Ohne Netz rechnet die App mit dem gespeicherten Kurs weiter
+  und sagt, wie alt er ist.
+
+## Kalkulation
+
+Drei Stufen, umschaltbar in den Einstellungen:
+
+| Stufe | Inhalt |
+|---|---|
+| **Aus** | nur Einkaufspreise, am schlanksten |
+| **Einstandskosten** | Warenwert + Fracht nach Volumen + Zoll + Nebenkosten = Landed Cost |
+| **Mit Verkauf** | zusätzlich Zielpreis, Marge, Kalkulationsfaktor, Ampel und Verhandlungsgrenze |
+
+- Gerechnet wird mit dem **Kartonmaß**, nur ersatzweise mit dem Produktmaß.
+  Bei Möbeln macht der Unterschied schnell zwanzig Prozent aus.
+- Einfuhrumsatzsteuer ist bei Vorsteuerabzug ein durchlaufender Posten und
+  bleibt aus der Marge heraus — umschaltbar.
+- **Break-even**: bis zu welchem Einkaufspreis der Zielfaktor hält. Das ist
+  deine Verhandlungsgrenze, und du hast sie am Stand auf dem Handy.
+- Fracht, Zoll und Nebenkosten lassen sich pro Produkt überschreiben, wenn du
+  eine echte Zahl vom Spediteur hast.
+
+## Container-Planer
+
+Produkte mit Menge hineinlegen, Füllstand ablesen: 20′, 40′ oder 40′ HQ.
+Warnt bei Überladung und bei Unterfüllung unter 65 Prozent, weil LCL pro
+Kubikmeter deutlich teurer ist und die Kalkulation kippt. Kapazität ist
+nutzbares Ladevolumen, nicht Nennvolumen.
+
+## Lieferanten
+
+Halle, Booth, Ansprechpartner, WeChat, Telefon, Website, Ort.
+**Visitenkarte und Standfoto** direkt aus der Kamera — abtippen musst du nichts.
+Rating von 1 bis 10 und Einschätzungs-Checkboxen (eigener Hersteller, Export
+nach Europa, Zertifikate, Customization, Samples).
+
+**Anfrage erstellen** baut daraus ein englisches Inquiry-Sheet mit allen
+Positionen und den Standardfragen zu Preisstaffel, Kartonmaß, Lieferzeit,
+Mustern, Zertifikaten und Zahlungsbedingungen — teilbar über das iOS-Teilen-Menü
+direkt nach WeChat oder Mail, oder als Druckansicht zum Sichern als PDF.
+
+## Smart Inbox
+
+Alles Unvollständige sammelt sich hier, gruppiert nach Zeitnähe: Fotos, die
+innerhalb von zwölf Minuten entstanden sind, gehören meist zum selben Stand.
+Eine ganze Gruppe wird mit einem Tap einem Lieferanten zugeordnet, die Preisart
+für alle auf einmal gesetzt. Preise trägst du **direkt in der Inbox** ein, ohne
+jedes Produkt einzeln zu öffnen — Feld antippen, Zahl, weiter. Jede Zeile zeigt,
+was noch fehlt.
+
+Das ersetzt den größten Teil dessen, wofür man sonst Texterkennung bräuchte,
+und funktioniert im Flugmodus.
+
+## Liste, Auswahl, Vergleich
+
+- Volltextsuche über Name, Material, Stand, Tags und Notizen
+- Filter nach Status, Kategorie, Tag, Halle und Lieferant
+- Sieben Sortierungen, Gruppierung nach Lieferant, Halle, Kategorie oder Status
+- **Mehrfachauswahl** per Langdruck auf eine Kachel oder über „Auswählen" in
+  der Kopfzeile. Erst dann erscheinen Auswahlkreise — im Normalzustand bleibt
+  das Raster ruhig. Sammelaktionen: Status setzen, Stand zuordnen, Tag
+  vergeben, in den Container legen, löschen
+- **Vergleich** von bis zu vier Produkten. Bestwert je Zeile markiert, dazu
+  Best Value, Cheapest und Best Quality. Best Value ist Gesamtnote geteilt
+  durch Preis in Euro — eine Formel, die du nachrechnen kannst.
+- **Duplikat-Hinweis**: gleiche Kategorie, Preis im Umkreis von fünfzehn
+  Prozent, anderer Stand. Vielleicht derselbe Artikel zweimal gesehen.
+
+## Nichts geht verloren
+
+Jede Eingabe wird 400 ms nach dem letzten Tastendruck automatisch in die
+Datenbank geschrieben — auch beim Seitenwechsel, beim Wegwischen der App und
+beim Sperren des Telefons. Wer aus dem Bearbeiten-Screen zurücktippt statt auf
+„Fertig" zu drücken, verliert nichts. Eine kleine Zeile über dem Knopf zeigt
+den Zustand an.
+
+## Prozess, Modellnummer, Ausführungen
+
+Neben dem Interesse-Status (Must Buy, Favorit, Vielleicht, Nein) gibt es eine
+zweite Dimension: **wo die Position im Beschaffungsprozess steht** — Muster
+angefragt, Angebot erhalten, bestellt. Filterbar und gruppierbar.
+
+Dazu **Modellnummer** (chinesische Lieferanten referenzieren fast alles über
+`HT-8827` statt über den Namen) und ein Feld für **Ausführungen und Farben**.
+Beides landet in der Suche, im Anfrage-Sheet und im Bericht.
+
+## Messebericht
+
+Alles mit Must Buy oder Favorit, nach Lieferant gruppiert, mit Fotos, Preisen,
+Landed Cost, Gesamtvolumen und Container-Füllstand. Zum Drucken, als PDF sichern
+oder als Text teilen — für den Partner zuhause, der nicht mit auf der Messe war.
+
+## Bewertung und Verhandlung
+
+Design, Qualität und Preis je 1 bis 10, gewichtete Gesamtnote — Standard
+50 / 40 / 10 Prozent, verstellbar. Verhandlungs-Log je Produkt: Angebot,
+Gegenangebot, finaler Preis, jeweils mit Datum. Der finale Preis übernimmt
+sich in die Produktkarte.
+
+## Hallen und Rückweg
+
+Produkte je Halle, dazu der Must-Buy-Rückweg für den letzten Messetag,
+sortiert nach Halle und Standnummer. Eine Abhakliste, keine echte Karte —
+Messeplandaten gibt es nicht als Datei. Am besten neben den offiziellen
+Hallenplan legen.
+
+## Statistik
+
+Produkte, Lieferanten, Hallen, Gesamtvolumen, Warenwert, Durchschnittspreis
+und Durchschnittsnote. Verteilungen nach Kategorie, Status, Halle und
+Top-Lieferanten, Erfassung pro Tag, Preisspanne mit Median.
+
+## Backup
+
+**Das Wichtigste an der ganzen App.** Alles liegt auf einem Gerät.
+
+- **Vollbackup als ZIP** — Daten, alle Fotos, deren Rollen und alle
+  Sprachnotizen. Eigener store-only ZIP-Writer, kein externes Paket
+- **JSON** ohne Fotos, klein und schnell
+- **CSV** mit 48 Spalten für Excel und Numbers, inklusive Modellnummer,
+  Landed Cost, Faktor, Marge, Kartonmaß, Fortschritt und Verhandlungsstand
+- **Import** stellt Daten, Fotos, Fotorollen und Sprachnotizen wieder her
+- Ab 17 Uhr erinnert die App, wenn seit zwanzig Stunden kein Backup lief
+
+---
+
+## Oberfläche
+
+Dunkel, fast monochrom, warm. Farbe trägt ausschließlich Bedeutung: Gold für
+Must Buy, Rosé für Favorit, Blaugrau für Vielleicht, Rot für Nein und für die
+Ampel. Alles andere ist Knochenweiß auf warmem Anthrazit. Keine Emojis, sondern
+ein eigenes Inline-SVG-Sprite aus 37 Symbolen in einheitlicher Strichstärke.
+
+Die Startseite ist eine Übersicht, keine Menüliste: Einkaufsvolumen groß oben,
+darunter die Erfassen-Taste, vier Statuskacheln mit Zahlen, ein Streifen der
+zuletzt erfassten Produkte **als Bilder** und vier Übersichtskacheln.
+
+Kontraste sind für helle Messehallen ausgelegt — Sekundärtext liegt bei etwa
+8:1, Tertiärtext bei 4,4:1 gegen den Hintergrund.
+
+Bewegung ist sparsam: Seiten blenden auf und steigen sieben Pixel, Listen
+gestaffelt, der Navigationsindikator gleitet, Bilder blenden ein statt zu
+springen, die Summe zählt hoch. Alles hinter `prefers-reduced-motion`
+abgeschaltet.
+
+## Technik
+
+```
+index.html            komplette App: Markup, CSS und JS in einer Datei
+manifest.webmanifest  Homescreen-Installation
+sw.js                 Service Worker, cacht die App-Shell für offline
+icon-*.png            App-Icons
+```
+
+Kein Build-Schritt, keine Abhängigkeiten, keine externen Fonts oder CDNs —
+in China ohnehin blockiert. Bilder laden über einen IntersectionObserver erst
+kurz bevor sie ins Sichtfeld kommen, und der Object-URL-Cache ist gedeckelt:
+bei 300 Produkten sind zehn Bilder im Speicher statt dreihundert. Vollbilder
+werden beim Verlassen der Detailseite wieder freigegeben. Daten in IndexedDB, Fotos als Blob, beim Speichern
+auf 1600 px / JPEG q0.8 heruntergerechnet, rund 250 KB statt 4 MB.
+Sprachnotizen über MediaRecorder, als `audio/mp4` auf iOS.
+Icons sind ein eigenes Inline-SVG-Sprite, keine Emojis.
+
+Über das Homescreen-Symbol lange drücken führt direkt zu Erfassen, Inbox oder
+Container-Planer.
+
+Updates meldet die App über den Service Worker und lädt erst nach Bestätigung
+neu — nicht mitten in der Erfassung.
+
+## Auf dem iPhone installieren
+
+Live unter **https://iamjink007.github.io/source-app/**
+
+Die App braucht eine echte `https://`-Adresse — über `file://` funktionieren
+weder IndexedDB noch der Service Worker.
+
+1. Adresse in **Safari** öffnen (nur Safari kann auf iOS installieren).
+2. Teilen-Symbol → **Zum Home-Bildschirm**.
+3. Die App vom Icon starten. Ab jetzt läuft sie offline.
+
+Web-Apps auf dem Homescreen sind von der Sieben-Tage-Löschregel ausgenommen,
+die für normale Safari-Tabs gilt, und die App fordert zusätzlich
+`storage.persist()` an. Trotzdem: **abends das ZIP-Backup exportieren.**
+
+## Lokal testen
+
+```bash
+python3 -m http.server 8000
+# -> http://localhost:8000
+```
+
+## Erste Schritte
+
+Beim ersten Start fragt die App nach der Messe und holt, wenn Netz da ist,
+die Wechselkurse. Danach: **Produkt erfassen.** Foto, Preis, speichern.
+Der Rest kann bis zum Abend warten.
