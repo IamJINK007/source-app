@@ -28,6 +28,27 @@ in die Inbox.
   Aufnahme, liegen wie alles andere lokal im Gerät und wandern mit ins Backup.
 - Schnelltasten für Preisschild und Visitenkarte, damit die Rolle gleich stimmt
 
+## Preisschild einfügen
+
+iPhones erkennen Text in Fotos von selbst (Live Text). Du fotografierst das
+Preisschild, hältst im Bild auf den Text, kopierst — und tippst in der App auf
+**Einfügen**. Die App liest heraus, was drinsteht:
+
+```
+¥ 3.980 / set          →  Preis 3.980 · RMB · pro Set
+MOQ 10                 →  MOQ 10
+1800 × 900 × 760 mm    →  Maße 180 × 90 × 76 cm
+```
+
+Sie versteht `4.800` und `4,800` als Viertausendachthundert, aber `320.50` als
+Dezimalzahl. Sie erkennt ¥ ￥ RMB CNY 元, $ USD, € EUR, deutsche wie chinesische
+Schreibweisen (`起订量 20`, `型号: HT-8827`), rechnet Millimeter und Meter in
+Zentimeter um und liest Maße **zuerst**, damit nicht die erste Kantenlänge als
+Preis durchgeht. Fehlt die Einheit, wird sie aus der Größenordnung geschlossen
+und offen als Annahme gekennzeichnet.
+
+Vor dem Übernehmen zeigt sie, was sie gefunden hat. Nichts wird still gesetzt.
+
 ## Preis und Währung
 
 - RMB, USD und EUR. Die **Leitwährung** — die, in der tatsächlich angeboten
@@ -157,7 +178,12 @@ Top-Lieferanten, Erfassung pro Tag, Preisspanne mit Median.
 - **JSON** ohne Fotos, klein und schnell
 - **CSV** mit 48 Spalten für Excel und Numbers, inklusive Modellnummer,
   Landed Cost, Faktor, Marge, Kartonmaß, Fortschritt und Verhandlungsstand
-- **Import** stellt Daten, Fotos, Fotorollen und Sprachnotizen wieder her
+- **Import** mit Wahl: **zusammenführen** oder **ersetzen**. Zusammenführen
+  gleicht über die Kennungen ab, behält bei Konflikten die neuere Fassung und
+  lässt alles stehen, was nur auf diesem Gerät liegt — Wiederherstellen ist
+  damit gefahrlos, und zwei Telefone lassen sich zusammenlegen. Vorher siehst
+  du, was im Backup steckt und wie viel davon neu ist; danach die Bilanz
+  („12 neu, 3 aktualisiert, 40 unverändert").
 - Ab 17 Uhr erinnert die App, wenn seit zwanzig Stunden kein Backup lief
 
 ---

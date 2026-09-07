@@ -587,6 +587,12 @@ details.more .inner{padding-bottom:6px;animation:rise 260ms var(--e) both}
 .savenote #savedot{color:var(--ink2)}
 details.more>summary span{margin-left:auto}
 
+.pastebtn{flex:none;display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink2);
+  border:1px solid var(--ln2);border-radius:9px;padding:9px 12px;white-space:nowrap;
+  transition:color 160ms var(--e),border-color 160ms var(--e),transform 140ms var(--e)}
+.pastebtn:active{transform:scale(.96);color:var(--ink)}
+.pastebtn svg.ic{color:var(--ink3)}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
     transition-duration:.01ms!important}
@@ -1593,8 +1599,8 @@ function viewBackup(){
      + '<button class="row" onclick="expCsv()">' + ic("table") + '<span class="t">Produkte als CSV'
        + '<small>Für Excel und Numbers, eine Zeile je Produkt.</small></span>'
        + '<span class="chev">' + ic("chev","s") + '</span></button>'
-     + '<button class="row" onclick="impPick()">' + ic("folder") + '<span class="t">Backup einspielen'
-       + '<small>ZIP oder JSON. Ersetzt den aktuellen Bestand.</small></span>'
+     + '<button class="row wrap" onclick="impPick()">' + ic("folder") + '<span class="t">Backup einspielen'
+       + '<small>ZIP oder JSON. Du wählst danach: zusammenführen oder ersetzen.</small></span>'
        + '<span class="chev">' + ic("chev","s") + '</span></button>'
    + '</div>'
    + '<div class="help" style="margin-top:18px">Letztes Backup: <b>' + (S.cfg.lastBackup ? "vor " + ago(S.cfg.lastBackup) : "noch nie") + '</b>'
@@ -1670,54 +1676,6 @@ function expCsv(){
   download(new Blob(["﻿" + head.map(q).join(";") + "\n" + rows.join("\n")], {type:"text/csv;charset=utf-8"}),
            "SOURCE-Produkte-" + dstamp().slice(0,10) + ".csv");
   toast("CSV exportiert");
-}
-async function doImport(file){
-  toast("Wird eingelesen…");
-  let dump = null, photos = {}, audios = {}, roles = {};
-  if(/\.zip$/i.test(file.name) || file.type === "application/zip"){
-    const entries = await ZIP.read(file);
-    if(!entries["data.json"]) throw new Error("data.json fehlt im ZIP");
-    dump = JSON.parse(new TextDecoder().decode(entries["data.json"]));
-    Object.keys(entries).forEach(n => {
-      const m = n.match(/^photos\/(.+)\.jpg$/);
-      if(m) photos[m[1]] = entries[n];
-      const a = n.match(/^audio\/(.+)\.(m4a|webm)$/);
-      if(a) audios[a[1]] = { data: entries[n], ext: a[2] };
-    });
-    if(entries["photo-roles.json"]){
-      try{ roles = JSON.parse(new TextDecoder().decode(entries["photo-roles.json"])); }catch(e){}
-    }
-  }else{
-    dump = JSON.parse(await file.text());
-  }
-  if(!dump || dump.app !== "SOURCE") throw new Error("Kein SOURCE-Backup");
-
-  for(const s of DB.stores) await DB.clear(s);
-  S.photoUrls.forEach(u => URL.revokeObjectURL(u)); S.photoUrls.clear();
-
-  for(const f of (dump.fairs||[]))     await DB.put("fairs", f);
-  for(const s of (dump.suppliers||[])) await DB.put("suppliers", s);
-  for(const p of (dump.products||[]))  await DB.put("products", p);
-  if(dump.settings) await DB.put("settings", Object.assign({}, dump.settings, {id:"app"}));
-
-  const ids = Object.keys(photos);
-  for(let i=0;i<ids.length;i++){
-    const blob = new Blob([photos[ids[i]]], {type:"image/jpeg"});
-    let thumb = blob;
-    try{ thumb = await shrink(blob, 400, .7); }catch(e){}
-    await DB.put("photos", { id:ids[i], blob, thumb, role: roles[ids[i]] || "product", takenAt:Date.now() });
-  }
-  const aids = Object.keys(audios);
-  for(const aid of aids){
-    const a = audios[aid];
-    await DB.put("audio", { id:aid, blob:new Blob([a.data], {type: a.ext === "webm" ? "audio/webm" : "audio/mp4"}),
-                            dur:0, createdAt:Date.now() });
-  }
-  await loadAll();
-  S.sel.clear();
-  toast("Eingespielt: " + (dump.products||[]).length + " Produkte, " + ids.length + " Fotos"
-        + (aids.length ? ", " + aids.length + " Aufnahmen" : ""));
-  go("/");
 }
 async function showStorage(){
   const el = document.getElementById("storage");
@@ -1887,19 +1845,6 @@ async function wipe(){
   go("/");
 }
 
-function impPick(){
-  const inp = document.createElement("input");
-  inp.type = "file"; inp.accept = ".zip,.json,application/zip,application/json"; inp.style.display = "none";
-  document.body.appendChild(inp);
-  inp.onchange = async () => {
-    const f = inp.files && inp.files[0]; inp.remove();
-    if(!f) return;
-    if(!await askConfirm("Backup einspielen?",
-        "Der aktuelle Bestand auf diesem Gerät wird vollständig ersetzt.", "Einspielen", true)) return;
-    try{ await doImport(f); }catch(e){ toast("Import fehlgeschlagen: " + e.message); }
-  };
-  inp.click();
-}
 </script>
 
 <script>
@@ -3194,6 +3139,9 @@ function viewEdit(id){
      + '<div class="field"><label>Modellnr.</label>'
      + '<input class="inp" placeholder="HT-8827" value="' + esc(p.sku) + '" ' + D("sku") + '></div></div>'
 
+   + '<div style="display:flex;justify-content:flex-end;margin:-8px 0 12px">'
+     + '<button class="pastebtn" onclick="smartPaste(\'' + p.id + '\')">' + ic("card","s")
+     + 'Preisschild einfügen</button></div>'
    + '<div class="two"><div class="field"><label>Preis</label>'
      + '<input class="inp num" inputmode="decimal" value="' + (p.price.amount != null ? p.price.amount : "") + '" oninput="edPrice(this.value)"></div>'
      + '<div class="field"><label>Währung</label><select class="inp" onchange="ed2(\'price.currency\',this.value)">'
@@ -3678,9 +3626,13 @@ function viewScan(){
 
   /* Preis */
   h += '<div class="pricebox" style="margin-top:20px">'
-    + '<div class="chipset" style="margin-bottom:12px">'
-      + Object.keys(CUR).map(c => '<button class="' + (d.price.currency===c?"on":"") + '" '
-         + 'onclick="setCur(\'' + c + '\')">' + CUR[c].sym + " " + CUR[c].name + '</button>').join("")
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
+      + '<div class="chipset" style="flex:1">'
+        + Object.keys(CUR).map(c => '<button class="' + (d.price.currency===c?"on":"") + '" '
+           + 'onclick="setCur(\'' + c + '\')">' + CUR[c].sym + " " + CUR[c].name + '</button>').join("")
+      + '</div>'
+      + '<button class="pastebtn" onclick="smartPaste(\'draft\')" aria-label="Text einfügen">'
+        + ic("card","s") + 'Einfügen</button>'
     + '</div>'
     + '<input class="inp num" id="amt" type="text" inputmode="decimal" placeholder="Preis in ' + CUR[d.price.currency].name + '" '
       + 'style="font-size:26px;font-weight:600;letter-spacing:-.035em" value="' + (d.price.amount != null ? d.price.amount : "") + '" '
@@ -3991,6 +3943,278 @@ async function shareReport(){
   }
   try{ await navigator.clipboard.writeText(txt); toast("Bericht kopiert"); }
   catch(e){ toast("Teilen wird hier nicht unterstützt"); }
+}
+</script>
+
+
+<script>
+"use strict";
+/* ============================================================
+   AUSBAU I — Preisschild einfügen, Backup zusammenführen
+   ============================================================ */
+
+/* ---------- Zahlen aus fremden Schreibweisen ---------- */
+function parseNum(raw){
+  let t = String(raw == null ? "" : raw).replace(/\s/g, "");
+  if(!t) return null;
+  const hasDot = t.indexOf(".") >= 0, hasCom = t.indexOf(",") >= 0;
+  if(hasDot && hasCom){
+    // Der hintere Trenner ist das Dezimalzeichen: 4.800,50 wie auch 4,800.50
+    const last = Math.max(t.lastIndexOf("."), t.lastIndexOf(","));
+    const dec = t[last], thou = dec === "." ? "," : ".";
+    t = t.split(thou).join("").replace(dec, ".");
+  }else if(hasDot || hasCom){
+    const sep = hasDot ? "." : ",";
+    const parts = t.split(sep);
+    // 4.800 und 4,800 sind Tausender, 320.50 ist eine Dezimalzahl
+    const groups = parts.slice(1).every(x => x.length === 3);
+    t = (parts.length > 1 && groups && parts[0].length <= 3)
+      ? parts.join("")
+      : parts.join(".");
+  }
+  const n = parseFloat(t);
+  return isNaN(n) ? null : n;
+}
+
+/* ---------- Preisschild als Ganzes lesen ---------- */
+function parseTag(text){
+  let t = " " + String(text == null ? "" : text).replace(/ /g, " ") + " ";
+  const out = {};
+
+  // Maße zuerst, sonst wird die erste Kantenlänge als Preis gelesen
+  const dm = t.match(/(\d[\d.,]*)\s*[x×*╳]\s*(\d[\d.,]*)\s*[x×*╳]\s*(\d[\d.,]*)\s*(mm|cm|m)?/i);
+  if(dm){
+    let [l, w, h] = [parseNum(dm[1]), parseNum(dm[2]), parseNum(dm[3])];
+    const unit = (dm[4] || "").toLowerCase();
+    const biggest = Math.max(l, w, h);
+    let f = 1;
+    if(unit === "mm") f = 0.1;
+    else if(unit === "m") f = 100;
+    else if(!unit && biggest > 400) f = 0.1;      // ohne Einheit sind grosse Werte Millimeter
+    const r = v => Math.round(v * f * 10) / 10;
+    out.dims = { l:r(l), w:r(w), h:r(h) };
+    out.dimUnit = unit || (f === 0.1 ? "mm (angenommen)" : "cm (angenommen)");
+    t = t.replace(dm[0], " ");
+  }
+
+  // MOQ
+  const mq = t.match(/(?:MOQ|Min\.?\s*Order|Mindestabnahme)\s*[:：]?\s*(\d[\d.,]*)/i)
+          || t.match(/(?:最小起订量|起订量|起订)\s*[:：]?\s*(\d[\d.,]*)/)
+          || t.match(/(\d[\d.,]*)\s*(?:pcs?|sets?|stk)\s*(?:\/\s*)?(?:MOQ|min)/i);
+  if(mq){
+    const n = parseNum(mq[1]);
+    if(n != null && n > 0){ out.moq = Math.round(n); t = t.replace(mq[0], " "); }
+  }
+
+  // Preisbasis
+  if(/\/\s*(set|套)/i.test(t)) out.basis = "set";
+  else if(/\/\s*(carton|ctn|箱)/i.test(t)) out.basis = "carton";
+  else if(/\/\s*(pc|pcs|piece|stk|个|件)/i.test(t)) out.basis = "piece";
+
+  // Preis: bevorzugt eine Zahl direkt an einem Währungszeichen
+  let pm = t.match(/(?:[¥￥$€]|RMB|CNY|USD|EUR|US\$)\s*(\d[\d.,]*)/i)
+        || t.match(/(\d[\d.,]*)\s*(?:元|RMB|CNY|USD|EUR|[¥￥$€])/i);
+  if(!pm){
+    // sonst die groesste freistehende Zahl im Rest
+    const all = (t.match(/\d[\d.,]*/g) || []).map(parseNum).filter(n => n != null && n > 0);
+    if(all.length) pm = [null, String(Math.max.apply(null, all))];
+  }
+  if(pm){
+    const n = parseNum(pm[1]);
+    if(n != null && n > 0) out.price = n;
+  }
+
+  // Währung
+  if(/[¥￥]|RMB|CNY|人民币|元/i.test(text)) out.currency = "CNY";
+  else if(/US\$|\bUSD\b|\$/i.test(text)) out.currency = "USD";
+  else if(/€|\bEUR\b/i.test(text)) out.currency = "EUR";
+
+  // Artikelnummer
+  const sk = String(text).match(/(?:Art\.?(?:\s*Nr\.?)?|Model|Item|型号|货号)\s*[:：#]?\s*([A-Z0-9][A-Z0-9\-\/]{2,})/i);
+  if(sk) out.sku = sk[1];
+
+  return out;
+}
+
+/* ---------- Text aus der Zwischenablage übernehmen ----------
+   iOS erkennt Text in Fotos selbst (Live Text). Man markiert ihn im Bild,
+   kopiert, und hier wird herausgelesen, was verwertbar ist. */
+async function readClipboard(){
+  try{
+    if(navigator.clipboard && navigator.clipboard.readText){
+      const t = await navigator.clipboard.readText();
+      if(t && t.trim()) return t;
+    }
+  }catch(e){ /* verweigert oder nicht unterstützt */ }
+  return null;
+}
+function tagSummary(f){
+  const L = [];
+  if(f.price != null) L.push("Preis " + money(f.price, f.currency || "CNY"));
+  const dv = v => Number.isInteger(v) ? nf(v) : nf(v,1);
+  if(f.dims) L.push("Maße " + dv(f.dims.l) + " × " + dv(f.dims.w) + " × " + dv(f.dims.h) + " cm");
+  if(f.moq != null) L.push("MOQ " + nf(f.moq));
+  if(f.basis) L.push(BASIS[f.basis]);
+  if(f.sku) L.push("Art. " + f.sku);
+  return L;
+}
+async function smartPaste(targetId){
+  let text = await readClipboard();
+  if(text == null){
+    const r = await openSheet('<h3>Text einfügen</h3>'
+      + '<div class="help" style="margin:0 0 14px">Safari lässt mich die Zwischenablage nicht von selbst lesen. '
+      + 'Feld antippen und einfügen — der Rest geht automatisch.</div>'
+      + '<div class="field"><textarea class="inp" data-k="t" placeholder="¥ 3.980 / set&#10;MOQ 10&#10;1800 × 900 × 760 mm"></textarea></div>'
+      + '<div style="display:flex;gap:9px">'
+      + '<button class="btn" onclick="closeSheet(null)">Abbrechen</button>'
+      + '<button class="btn pri" onclick="submitSheet()">Lesen</button></div>');
+    if(!r || !r.t) return;
+    text = r.t;
+  }
+  const f = parseTag(text);
+  const lines = tagSummary(f);
+  if(!lines.length){ toast("Nichts Verwertbares im Text gefunden"); return; }
+
+  const ok = await openSheet('<h3>Gefunden</h3>'
+    + '<div class="calc" style="margin-bottom:20px">'
+    + lines.map(l => '<div class="r"><span>' + esc(l) + '</span></div>').join("")
+    + '</div>'
+    + (f.dimUnit && f.dimUnit.indexOf("angenommen") >= 0
+       ? '<div class="note-w warn" style="margin:0 0 18px"><b>Einheit geraten:</b> '
+         + esc(f.dimUnit) + '. Auf der Produktseite nachprüfen.</div>' : "")
+    + '<div style="display:flex;gap:9px">'
+    + '<button class="btn" onclick="closeSheet(null)">Verwerfen</button>'
+    + '<button class="btn pri" onclick="closeSheet(1)">Übernehmen</button></div>');
+  if(!ok) return;
+
+  const t = targetId === "draft" ? S.draft : S.products.find(x => x.id === targetId);
+  if(!t) return;
+  t.price = t.price || { amount:null, currency:"CNY", kind:"", basis:"piece" };
+  if(f.price != null) t.price.amount = f.price;
+  if(f.currency) t.price.currency = f.currency;
+  if(f.basis) t.price.basis = f.basis;
+  if(f.moq != null) t.moq = f.moq;
+  if(f.sku && !t.sku) t.sku = f.sku;
+  if(f.dims) t.dims = { l:f.dims.l, w:f.dims.w, h:f.dims.h };
+  if(targetId !== "draft"){ t.cbm = cbm(t.dims); await DB.put("products", t); }
+  toast("Übernommen: " + lines.length + (lines.length === 1 ? " Angabe" : " Angaben"));
+  render();
+}
+
+/* ---------- Backup: ersetzen oder zusammenführen ---------- */
+async function readBackup(file){
+  let dump = null, photos = {}, audios = {}, roles = {};
+  if(/\.zip$/i.test(file.name) || file.type === "application/zip"){
+    const entries = await ZIP.read(file);
+    if(!entries["data.json"]) throw new Error("data.json fehlt im ZIP");
+    dump = JSON.parse(new TextDecoder().decode(entries["data.json"]));
+    Object.keys(entries).forEach(n => {
+      const m = n.match(/^photos\/(.+)\.jpg$/);
+      if(m) photos[m[1]] = entries[n];
+      const a = n.match(/^audio\/(.+)\.(m4a|webm)$/);
+      if(a) audios[a[1]] = { data: entries[n], ext: a[2] };
+    });
+    if(entries["photo-roles.json"]){
+      try{ roles = JSON.parse(new TextDecoder().decode(entries["photo-roles.json"])); }catch(e){}
+    }
+  }else{
+    dump = JSON.parse(await file.text());
+  }
+  if(!dump || dump.app !== "SOURCE") throw new Error("Kein SOURCE-Backup");
+  return { dump, photos, audios, roles };
+}
+const stamp = o => o && (o.updatedAt || o.createdAt || 0);
+
+async function doImport(file){
+  let data;
+  try{ data = await readBackup(file); }
+  catch(e){ toast("Backup nicht lesbar: " + e.message); return; }
+  const { dump, photos, audios, roles } = data;
+
+  const inP = (dump.products || []).length, inS = (dump.suppliers || []).length;
+  const known = new Set(S.products.map(p => p.id));
+  const fresh = (dump.products || []).filter(p => !known.has(p.id)).length;
+
+  const mode = await openSheet('<h3>Backup einspielen</h3>'
+    + '<div class="calc" style="margin-bottom:18px">'
+    + '<div class="r"><span>Im Backup</span><b>' + inP + ' Produkte · ' + inS + ' Lieferanten</b></div>'
+    + '<div class="r"><span>Erstellt</span><b>' + esc(dump.exportedAt ? dstamp(dump.exportedAt) : "unbekannt") + '</b></div>'
+    + '<div class="r"><span>Auf diesem Gerät</span><b>' + S.products.length + ' Produkte</b></div>'
+    + '<div class="r sum"><span>Davon neu</span><b>' + fresh + '</b></div>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:9px">'
+    + '<button class="btn pri" onclick="closeSheet(\'merge\')">' + ic("plus","s") + 'Zusammenführen</button>'
+    + '<button class="btn dgr" onclick="closeSheet(\'replace\')">' + ic("alert","s") + 'Alles ersetzen</button>'
+    + '<button class="btn" onclick="closeSheet(null)">Abbrechen</button></div>'
+    + '<div class="help">Zusammenführen behält bei gleicher Kennung die neuere Fassung und lässt '
+    + 'alles stehen, was nur auf diesem Gerät liegt. Ersetzen wirft den aktuellen Bestand weg.</div>');
+  if(!mode) return;
+
+  if(mode === "replace"){
+    if(!await askConfirm("Wirklich ersetzen?",
+        "Alle " + S.products.length + " Produkte auf diesem Gerät werden gelöscht und durch das Backup ersetzt.",
+        "Ersetzen", true)) return;
+    for(const st of DB.stores) await DB.clear(st);
+    S.photoUrls.forEach(u => URL.revokeObjectURL(u));
+    S.photoUrls.clear();
+  }
+
+  toast("Wird eingespielt…", 4000);
+  let added = 0, updated = 0, kept = 0;
+
+  for(const f of (dump.fairs || [])){
+    const old = await DB.get("fairs", f.id);
+    if(!old){ await DB.put("fairs", f); }
+    else if(stamp(f) > stamp(old)) await DB.put("fairs", f);
+  }
+  for(const sup of (dump.suppliers || [])){
+    const old = await DB.get("suppliers", sup.id);
+    if(!old) await DB.put("suppliers", sup);
+    else if(stamp(sup) > stamp(old)) await DB.put("suppliers", sup);
+  }
+  for(const pr of (dump.products || [])){
+    const old = await DB.get("products", pr.id);
+    if(!old){ await DB.put("products", pr); added++; }
+    else if(stamp(pr) > stamp(old)){ await DB.put("products", pr); updated++; }
+    else kept++;
+  }
+  if(mode === "replace" && dump.settings)
+    await DB.put("settings", Object.assign({}, dump.settings, {id:"app"}));
+
+  const ids = Object.keys(photos);
+  for(const id of ids){
+    if(await DB.get("photos", id)) continue;      // Bilder sind unveraenderlich
+    const blob = new Blob([photos[id]], {type:"image/jpeg"});
+    let thumb = blob;
+    try{ thumb = await shrink(blob, 400, .7); }catch(e){}
+    await DB.put("photos", { id, blob, thumb, role: roles[id] || "product", takenAt:Date.now() });
+  }
+  const aids = Object.keys(audios);
+  for(const aid of aids){
+    if(await DB.get("audio", aid)) continue;
+    const a = audios[aid];
+    await DB.put("audio", { id:aid, blob:new Blob([a.data], {type: a.ext === "webm" ? "audio/webm" : "audio/mp4"}),
+                            dur:0, createdAt:Date.now() });
+  }
+
+  await loadAll();
+  S.sel.clear(); S.selMode = false;
+  const msg = mode === "replace"
+    ? "Ersetzt: " + added + " Produkte, " + ids.length + " Fotos"
+    : added + " neu, " + updated + " aktualisiert, " + kept + " unverändert";
+  toast(msg, 5000);
+  go("/");
+}
+function impPick(){
+  const inp = document.createElement("input");
+  inp.type = "file"; inp.accept = ".zip,.json,application/zip,application/json"; inp.style.display = "none";
+  document.body.appendChild(inp);
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]; inp.remove();
+    if(!f) return;
+    try{ await doImport(f); }catch(e){ toast("Import fehlgeschlagen: " + e.message); }
+  };
+  inp.click();
 }
 </script>
 
