@@ -98,6 +98,17 @@ Bewertung
 online aktualisierbar, die App funktioniert davon unabhängig komplett offline.
 Sichtbar bleibt immer, wie alt der Kurs ist.
 
+**Die Karte ist zugleich das Formular.** Jede dieser Zeilen ist antippbar und
+öffnet ein Sheet mit genau diesem einen Feld. Ein Plus am Zeilenende markiert,
+was noch fehlt; oben steht die Zahl der Lücken und startet auf Tipp einen
+geführten Durchlauf durch alle offenen Felder — in der Reihenfolge, in der sie
+für eine Kaufentscheidung zählen. Das gilt auch für die Bereiche, die früher
+schlicht leer blieben: Fotos, Tags, Bewertung, Notiz.
+
+Am Stand entsteht so zuerst eine dünne Karte (Foto plus Preis, in zwei
+Sekunden), und alles Weitere wird nachgezogen, wann immer eine Hand frei ist —
+ohne dass man je in einen separaten Bearbeiten-Modus wechselt.
+
 ---
 
 ## 4. Smart Inbox

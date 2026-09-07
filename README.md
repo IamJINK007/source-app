@@ -125,6 +125,28 @@ und funktioniert im Flugmodus.
 - **Duplikat-Hinweis**: gleiche Kategorie, Preis im Umkreis von fünfzehn
   Prozent, anderer Stand. Vielleicht derselbe Artikel zweimal gesehen.
 
+## Alles direkt ausfüllen
+
+Auf der Produktseite ist **jede Zeile ein Formular**. Antippen öffnet ein Sheet
+mit genau dem einen Feld — Textfeld, Chips, drei Maßfelder oder Schieber, je
+nachdem, was gebraucht wird. Kein Umweg über einen Bearbeiten-Bildschirm, kein
+Suchen nach der richtigen Zeile in einem langen Formular. Ein Plus am
+Zeilenende heißt: fehlt noch.
+
+Das gilt auch für alles, was früher einfach nichts angezeigt hat: fehlende
+Fotos, leere Tags, keine Bewertung, keine Notiz. Nichts ist eine Sackgasse.
+
+Oben steht, **was fehlt und wie viel**. Ein Tipp darauf startet einen geführten
+Durchlauf: Feld für Feld, mit Fortschrittsbalken und „Weiter", in einer
+sinnvollen Reihenfolge — erst das, was den Preis vergleichbar macht (Preis,
+Preisart, Lieferant), dann Stand und Kategorie, dann Kartonmaß für die Fracht,
+zuletzt der Rest. Abbrechen geht jederzeit, das Ausgefüllte bleibt.
+
+Zwei Sheets rechnen mit: Bei den Maßen läuft das Volumen in m³ mit, während man
+tippt. Bei der Bewertung die gewichtete Gesamtnote. Wer beim Erfassen einen
+Lieferanten braucht, den es noch nicht gibt, legt ihn aus dem Sheet heraus an —
+der Durchlauf macht danach weiter, wo er war.
+
 ## Nichts geht verloren
 
 Jede Eingabe wird 400 ms nach dem letzten Tastendruck automatisch in die

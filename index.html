@@ -191,6 +191,12 @@ select.inp{appearance:none;
   display:flex;align-items:center;gap:7px;
   transition:background 180ms var(--e),color 180ms var(--e),border-color 180ms var(--e),transform 140ms var(--e)}
 .chipset button:active{transform:scale(.97)}
+.chipset.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chipset.grid2 button{justify-content:center}
+.chipset.grid2 button:nth-child(3):last-child{grid-column:1/-1}
+.grouplbl{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);
+  margin:26px 0 11px;font-weight:500}
+.grouplbl.first{margin-top:4px}
 .chipset button.on{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:500}
 .chipset.stat button.on[data-v="must"]{background:var(--gold);border-color:var(--gold);color:#171206}
 .chipset.stat button.on[data-v="fav"]{background:var(--rose);border-color:var(--rose);color:#1f0f0c}
@@ -207,7 +213,18 @@ input[type=range]::-moz-range-track{height:2px;background:var(--ln2)}
 input[type=range]::-moz-range-thumb{width:20px;height:20px;border:none;border-radius:50%;background:var(--ink)}
 
 /* ---------- Preisblock ---------- */
-.pricebox{background:var(--s1);border:1px solid var(--ln);border-radius:14px;padding:17px;margin-bottom:20px}
+.pricebox{position:relative;display:block;width:100%;text-align:left;font:inherit;color:var(--ink);
+  background:var(--s1);border:1px solid var(--ln);border-radius:14px;padding:17px;margin-bottom:20px;
+  -webkit-tap-highlight-color:transparent;transition:border-color 160ms var(--e),background 160ms var(--e)}
+.pricebox:active{background:var(--s2);border-color:var(--ln2)}
+.pricebox.gap .bigprice{color:var(--ink3);font-size:20px;letter-spacing:-.02em}
+.pricebox.lit{animation:boxflash 1100ms var(--e)}
+@keyframes boxflash{0%{border-color:var(--ln)}20%{border-color:rgba(198,164,94,.55)}100%{border-color:var(--ln)}}
+.suplink{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink2);
+  padding:11px 0;-webkit-tap-highlight-color:transparent}
+.suplink svg.ic:first-child{color:var(--ink3)}
+.suplink .chev{margin-left:auto;color:var(--ink3);opacity:.42}
+.suplink:active{color:var(--ink)}
 .pricebox .conv{display:flex;gap:20px;margin-top:12px;font-size:14px;color:var(--ink3);
   font-variant-numeric:tabular-nums}
 .pricebox .conv b{color:var(--ink2);font-weight:500}
@@ -235,12 +252,40 @@ img.phload{opacity:1;transition:opacity 420ms var(--e)}
   border-radius:100px;padding:4px 11px;font-size:11px;color:var(--ink);letter-spacing:.02em}
 
 /* ---------- Detail ---------- */
-.spec{display:grid;grid-template-columns:auto 1fr;gap:0;font-size:14px;margin:0}
-.spec dt{color:var(--ink3);font-size:13px;padding:11px 22px 11px 0;border-bottom:1px solid var(--ln);
-  white-space:nowrap;letter-spacing:0}
-.spec dd{margin:0;color:var(--ink);padding:11px 0;border-bottom:1px solid var(--ln);text-align:right;
-  letter-spacing:-.008em;font-variant-numeric:tabular-nums}
-.spec dt:last-of-type,.spec dd:last-of-type{border-bottom:none}
+.spec{display:block;margin:0;font-size:14px}
+.sprow{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;
+  width:100%;padding:12px 0;border:0;border-bottom:1px solid var(--ln);background:none;
+  color:var(--ink);font:inherit;text-align:left;-webkit-tap-highlight-color:transparent}
+.sprow:last-child{border-bottom:none}
+.sprow::before{content:"";position:absolute;inset:1px -10px;border-radius:9px;background:var(--s1);
+  opacity:0;transition:opacity 130ms var(--e);pointer-events:none}
+.sprow:active::before{opacity:1}
+.sprow .k{color:var(--ink3);font-size:13px;white-space:nowrap;letter-spacing:0}
+.sprow .v{text-align:right;letter-spacing:-.008em;font-variant-numeric:tabular-nums;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sprow .chev{color:var(--ink3);opacity:.42;flex:none;
+  transition:transform 160ms var(--e),opacity 160ms var(--e)}
+.sprow:active .chev{transform:translateX(2px);opacity:.9}
+.sprow.gap .v{color:var(--ink3);font-size:12.5px;letter-spacing:0}
+.sprow.gap .chev{opacity:.5}
+.sprow.gap:active .chev{transform:none;opacity:1}
+.sprow.ro{grid-template-columns:auto 1fr}
+.sprow.ro::before{display:none}
+.sprow.lit::after{content:"";position:absolute;inset:1px -10px;border-radius:9px;
+  background:var(--gold);opacity:0;animation:cellflash 1100ms var(--e);pointer-events:none}
+@keyframes cellflash{0%{opacity:0}18%{opacity:.13}100%{opacity:0}}
+#app.enter .spec>*{animation:rise-s 260ms var(--e) both}
+#app.enter .spec>*:nth-child(1){animation-delay:120ms}
+#app.enter .spec>*:nth-child(2){animation-delay:134ms}
+#app.enter .spec>*:nth-child(3){animation-delay:148ms}
+#app.enter .spec>*:nth-child(4){animation-delay:162ms}
+#app.enter .spec>*:nth-child(5){animation-delay:174ms}
+#app.enter .spec>*:nth-child(6){animation-delay:186ms}
+#app.enter .spec>*:nth-child(7){animation-delay:196ms}
+#app.enter .spec>*:nth-child(n+8){animation-delay:206ms}
+/* Die Zahl im Luecken-Hinweis zuckt, wenn sie kleiner wird. */
+.gapbtn.drop{animation:gapdrop 520ms var(--e)}
+@keyframes gapdrop{0%{transform:scale(1)}22%{transform:scale(.975)}100%{transform:scale(1)}}
 .score{display:flex;align-items:baseline;gap:9px;margin-top:2px}
 .score .n{font-size:36px;font-weight:600;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
 .score .o{color:var(--ink3);font-size:13px}
@@ -311,7 +356,7 @@ table.cmp td.win{color:var(--ink);font-weight:600}
 .toast.out{animation:toastin 200ms var(--e) reverse both}
 
 /* Sheet statt System-Dialog */
-@keyframes sheetin{from{transform:translateY(100%)}to{transform:none}}
+@keyframes sheetin{from{transform:translateY(100%)}55%{transform:translateY(-4px)}to{transform:none}}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 .sheetbg{position:fixed;inset:0;background:rgba(4,4,4,.62);z-index:60;display:flex;align-items:flex-end;
   -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:fadein 220ms var(--e) both}
@@ -321,7 +366,63 @@ table.cmp td.win{color:var(--ink);font-weight:600}
   border-top:1px solid var(--ln2);animation:sheetin 320ms var(--e) both}
 .sheetbg.out .sheetbx{animation:sheetin 220ms var(--e) reverse both}
 .sheetbx .grab{width:34px;height:4px;border-radius:2px;background:var(--ln2);margin:0 auto 18px}
+.fsbar{height:2px;border-radius:1px;background:var(--ln);margin:0 0 18px;overflow:hidden}
+.fsbar i{display:block;height:100%;background:var(--gold);border-radius:1px;
+  transform-origin:left;animation:fsgrow 420ms var(--e) both}
+@keyframes fsgrow{from{transform:scaleX(var(--from,0))}to{transform:scaleX(var(--to,1))}}
 .sheetbx h3{margin:0 0 18px;font-size:17px;font-weight:600;letter-spacing:-.02em}
+.sheetbx h3 .step{float:right;font-size:12px;font-weight:500;color:var(--ink3);
+  letter-spacing:0;padding-top:3px;font-variant-numeric:tabular-nums}
+.sheetact{display:flex;gap:9px;margin-top:22px}
+.sheetact .btn{flex:1}
+.fsvol{font-size:12.5px;color:var(--ink3);margin-top:10px;font-variant-numeric:tabular-nums}
+.fsrate{display:grid;grid-template-columns:66px 1fr 26px;gap:13px;align-items:center;margin-bottom:9px}
+.fsrate .l{font-size:13px;color:var(--ink2)}
+.fsrate .n{text-align:right;font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink)}
+/* Galerie: leer und nachschieben */
+.galempty{display:flex;align-items:center;justify-content:center;gap:11px;
+  width:100%;height:86px;background:var(--s1);border:0;border-bottom:1px solid var(--ln);
+  color:var(--ink3);font:inherit;font-size:13px;-webkit-tap-highlight-color:transparent;
+  transition:background 160ms var(--e)}
+.galempty:active{background:var(--s2)}
+.galempty svg.ic{width:22px;height:22px;opacity:.7}
+.gal .galadd{flex:none;width:34%;aspect-ratio:4/3;scroll-snap-align:center;background:var(--s2);
+  border:0;border-left:1px solid var(--ln);color:var(--ink3);font:inherit;font-size:11.5px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  -webkit-tap-highlight-color:transparent;transition:color 160ms var(--e)}
+.gal .galadd:active{color:var(--ink2)}
+/* Tags, Bewertung, Notiz als Flaeche */
+.tagline{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:11px 0;
+  background:none;border:0;font:inherit;color:var(--ink);text-align:left;
+  -webkit-tap-highlight-color:transparent}
+.tagline::before{content:"";position:absolute;inset:1px -10px;border-radius:9px;background:var(--s1);
+  opacity:0;transition:opacity 130ms var(--e);pointer-events:none}
+.tagline:active::before{opacity:1}
+.tagline .tagrow{display:flex;flex-wrap:wrap;gap:7px;flex:1}
+.tagline .ph{flex:1;font-size:13px;color:var(--ink3)}
+.tagline .chev{color:var(--ink3);opacity:.42;flex:none}
+.ratebox,.notebox{position:relative;display:block;width:100%;text-align:left;font:inherit;
+  color:var(--ink);background:none;border:0;padding:0;-webkit-tap-highlight-color:transparent}
+.ratebox .score .chev,.notebox .chev{color:var(--ink3);opacity:.42;margin-left:auto;flex:none}
+.ratebox .score{display:flex;align-items:center;gap:9px}
+.ratebox .score.gap .o{font-size:13.5px;color:var(--ink3)}
+.ratebox:active,.notebox:active{opacity:.62}
+.notebox{display:flex;align-items:flex-start;gap:12px}
+.notebox .tx{flex:1;font-size:14px;line-height:1.6;white-space:pre-wrap}
+.notebox.gap .tx{color:var(--ink3);font-size:13px}
+.notebox .chev{margin-top:3px}
+.gapbtn{display:grid;grid-template-columns:auto 1fr;gap:4px 11px;width:100%;text-align:left;font:inherit;
+  padding:14px 15px 13px;border-radius:13px;border:1px solid rgba(198,164,94,.3);
+  background:rgba(198,164,94,.06);color:var(--gold);margin:0 0 20px;
+  -webkit-tap-highlight-color:transparent;transition:background 140ms var(--e),border-color 140ms var(--e)}
+.gapbtn:active{background:rgba(198,164,94,.14);border-color:rgba(198,164,94,.5)}
+.gapbtn>svg.ic{margin-top:1px;opacity:.9}
+.gapbtn .t{font-size:13px;line-height:1.5;color:var(--ink3);letter-spacing:0}
+.gapbtn .t b{display:inline-block;margin-bottom:1px;color:var(--gold);font-size:13.5px;
+  font-weight:600;letter-spacing:-.008em}
+.gapbtn .go{grid-column:2;display:flex;align-items:center;gap:4px;margin-top:6px;
+  font-size:12.5px;font-weight:500;color:var(--gold)}
+.gapbtn .go .chev{width:13px;height:13px;opacity:.9}
 .note-w{border-left:1.5px solid var(--ln2);padding:2px 0 2px 15px;font-size:12.5px;color:var(--ink3);
   line-height:1.6;margin:0 20px 20px;letter-spacing:0}
 .note-w b{color:var(--ink2);font-weight:500}
@@ -1218,10 +1319,16 @@ async function saveDraft(next){
   await DB.put("products", d);
   S.products.unshift(d);
   const inherit = { supplierId:d.supplierId, currency:d.price.currency, kind:d.price.kind };
-  const miss = missingOf(d);
-  toast(miss.length ? "Gespeichert · offen: " + miss.join(", ") : "Gespeichert");
-  if(next){ S.draft = newDraft(inherit); render(); }
-  else { S.draft = null; go("/p/" + d.id); }
+  const gaps = gapsOf(d);
+  if(next){
+    S.draft = newDraft(inherit); render();
+    if(gaps.length) toastAction("Gespeichert · " + gaps.length + " offen", "Ergänzen",
+                                () => { go("/p/" + d.id); setTimeout(() => fillAll(d.id), 420); });
+    else toast("Gespeichert");
+  } else {
+    S.draft = null; go("/p/" + d.id);
+    toast(gaps.length ? "Gespeichert · " + gaps.length + " Angaben offen" : "Gespeichert");
+  }
 }
 
 /* ============================================================
@@ -2034,7 +2141,6 @@ function viewProduct(id){
   if(!p) return hdr("Nicht gefunden",{back:true}) + empty("alert","Dieses Produkt gibt es nicht mehr.");
   const s = supplierOf(p);
   const sc = score(p);
-  const miss = missingOf(p);
   const l = S.cfg.calcMode !== "off" ? landed(p) : null;
   const lp = lamp(p);
   const dup = duplicatesOf(p);
@@ -2044,49 +2150,80 @@ function viewProduct(id){
   if(p.photoIds && p.photoIds.length){
     h += '<div class="gal"><div class="scroller">'
        + p.photoIds.map((pid,i) => '<img data-ph="' + pid + '" data-full="1" alt="" onclick="openViewer(\'' + p.id + '\',' + i + ')">').join("")
+       + '<button class="galadd" onclick="addPhotoTo(\'' + p.id + '\')">' + ic("plus")
+       + '<span>Weiteres Foto</span></button>'
        + '</div>' + (p.photoIds.length > 1 ? '<span class="count">' + p.photoIds.length + ' Fotos</span>' : "") + '</div>';
+  } else {
+    h += '<button class="galempty" onclick="addPhotoTo(\'' + p.id + '\')">' + ic("camera")
+       + '<span>Foto hinzufügen</span></button>';
   }
 
   h += '<div class="pad" style="padding-top:18px">';
-  if(miss.length)
-    h += '<div class="note-w warn" style="margin:0 0 18px"><b>Unvollständig:</b> ' + esc(miss.join(", ")) + '</div>';
+  const gaps = gapsOf(p);
+  if(gaps.length){
+    const names = gaps.map(k => FIELDS[k].gapText || FIELDS[k].label);
+    const shown = names.slice(0,3).join(", ") + (names.length > 3 ? " und " + (names.length - 3) + " weitere" : "");
+    h += '<button class="gapbtn" onclick="fillAll(\'' + p.id + '\')">' + ic("alert","s")
+       + '<span class="t"><b>' + gaps.length + (gaps.length === 1 ? ' Angabe fehlt' : ' Angaben fehlen') + '</b><br>'
+       + esc(shown) + '</span>'
+       + '<span class="go">Ausfüllen' + ic("chev","chev") + '</span></button>';
+  }
   if(dup.length)
     h += '<div class="note-w" style="margin:0 0 18px"><b>Ähnlich erfasst:</b> '
        + dup.slice(0,2).map(d => '<a href="#/p/' + d.id + '">' + esc(d.title || "Ohne Namen") + '</a>').join(", ")
        + ' — gleiche Kategorie, Preis im Umkreis von 15 %. Vielleicht derselbe Artikel an einem anderen Stand.</div>';
 
   if(p.price && p.price.amount != null){
-    h += '<div class="pricebox"><div class="bigprice">' + money(p.price.amount, p.price.currency) + '</div>'
+    h += '<button class="pricebox" data-f="price" onclick="openField(\'' + p.id + '\',\'price\')">'
+       + '<div class="bigprice">' + money(p.price.amount, p.price.currency) + '</div>'
        + '<div class="conv">' + FX.all(p.price.amount, p.price.currency)
            .filter(x => x.cur !== p.price.currency)
            .map(x => '<span>' + CUR[x.cur].sym + ' <b>' + nf(x.val) + '</b></span>').join("") + '</div>'
        + '<div class="rateline">' + esc(p.price.kind || "Preisart offen") + ' · ' + (BASIS[p.price.basis] || "pro Stück")
-         + (p.moq ? ' · MOQ ' + p.moq : "") + '</div></div>';
+         + (p.moq ? ' · MOQ ' + p.moq : "") + '</div></button>';
+  } else {
+    h += '<button class="pricebox gap" data-f="price" onclick="openField(\'' + p.id + '\',\'price\')">'
+       + '<div class="bigprice">Preis eintragen</div>'
+       + '<div class="rateline">Ohne Preis fehlt die Zahl, an der alles andere hängt.</div></button>';
   }
 
   const v = itemCbm(p), src = cbmSource(p);
-  h += '<dl class="spec">'
-    + spec("Supplier", s ? '<a href="#/s/' + s.id + '" style="color:var(--ink);border-bottom:1px solid var(--ln2)">' + esc(s.name) + '</a>' : "–")
-    + spec("Booth", s ? esc([s.hall && "Hall " + s.hall, s.booth].filter(Boolean).join(" — ") || "–") : "–")
-    + spec("Modellnr.", esc(p.sku || "–"))
-    + spec("Kategorie", esc(p.category || "–"))
-    + (p.variants ? spec("Ausführungen", esc(p.variants)) : "")
-    + spec("Maße", p.dims && p.dims.l ? esc(p.dims.l + " × " + p.dims.w + " × " + p.dims.h + " cm") : "–")
-    + spec("Karton", p.carton && p.carton.l ? esc(p.carton.l + " × " + p.carton.w + " × " + p.carton.h + " cm") : "–")
-    + (v ? spec("Volumen", nf(v,2) + ' m³ <span style="color:var(--ink3);font-size:11.5px">(' + src + ')</span>') : "")
-    + spec("Material", esc(p.material || "–"))
-    + spec("Lead Time", esc(p.leadTime || "–"))
-    + '</dl>';
+  const dim = o => o && o.l && o.w && o.h ? esc(o.l + " × " + o.w + " × " + o.h + " cm") : null;
+  h += '<div class="grouplbl first">Angaben</div>'
+    + (seenCount("specrows") < 3
+       ? '<div class="help" style="margin:-4px 0 6px">Jede Zeile lässt sich antippen — '
+         + 'auch die schon ausgefüllten.</div>'
+       : "")
+    + '<div class="spec">'
+    + srow(p, "supplier", "Lieferant", s ? esc(s.name) : null)
+    + srow(p, "booth", "Stand", s ? (esc([s.hall && "Halle " + s.hall, s.booth].filter(Boolean).join(" · ")) || null) : null)
+    + srow(p, "sku", "Modellnr.", esc(p.sku) || null)
+    + srow(p, "category", "Kategorie", esc(p.category) || null)
+    + srow(p, "variants", "Ausführungen", esc(p.variants) || null)
+    + srow(p, "dims", "Produktmaß", dim(p.dims))
+    + srow(p, "carton", "Kartonmaß", dim(p.carton))
+    + (v ? srowRO("Volumen", nf(v,2) + ' m³ <span style="color:var(--ink3);font-size:11.5px">(' + src + ')</span>') : "")
+    + srow(p, "material", "Material", esc(p.material) || null)
+    + srow(p, "moq", "MOQ", p.moq ? esc(p.moq) + " Stück" : null)
+    + srow(p, "leadTime", "Lead Time", esc(p.leadTime) || null)
+    + '</div>';
+  if(s) h += '<div style="margin-top:12px"><a class="suplink" href="#/s/' + s.id + '">'
+    + ic("building","s") + esc(s.name) + ' öffnen' + ic("chev","chev") + '</a></div>';
 
-  h += '<div class="chipset stat" style="margin-top:20px">'
+  h += '<div class="grouplbl">Interesse</div>'
+    + '<div class="chipset stat grid2">'
     + Object.keys(STATUS).map(k => '<button data-v="' + k + '" class="' + (p.status===k?"on":"") + '" '
        + 'onclick="setProductStatus(\'' + p.id + '\',\'' + k + '\')">' + ic(STATUS[k].i,"s") + STATUS[k].t + '</button>').join("")
     + '</div>';
 
-  h += stageChips(p);
+  h += '<div class="grouplbl">Prozess</div>' + stageChips(p);
 
-  if((p.tags||[]).length)
-    h += '<div class="tagrow" style="margin-top:14px">' + p.tags.map(t => '<span class="tag">' + esc(t) + '</span>').join("") + '</div>';
+  h += '<div class="grouplbl">Tags</div><button class="tagline' + ((p.tags||[]).length ? "" : " gap") + '" data-f="tags" '
+     + 'onclick="openField(\'' + p.id + '\',\'tags\')">'
+     + ((p.tags||[]).length
+        ? '<span class="tagrow">' + p.tags.map(t => '<span class="tag">' + esc(t) + '</span>').join("") + '</span>'
+        : '<span class="ph">Tags vergeben</span>')
+     + ic((p.tags||[]).length ? "chev" : "plus","chev") + '</button>';
 
   h += '<div style="display:flex;gap:9px;margin-top:20px">'
     + '<button class="btn' + (S.compare.has(p.id) ? " pri" : "") + '" onclick="toggleCompare(\'' + p.id + '\')">'
@@ -2133,12 +2270,20 @@ function viewProduct(id){
   h += rankBlock(p);
 
   /* ---- Bewertung ---- */
-  if(sc != null || Object.keys(p.rate||{}).length){
-    const w = S.cfg.weights;
+  {
+    const w = S.cfg.weights, rated = sc != null || Object.keys(p.rate||{}).length > 0;
     h += '<div class="sec"><h3>Bewertung</h3>'
-      + '<div class="score"><span class="n">' + (sc != null ? nf(sc,1) : "–") + '</span><span class="o">/ 10 gesamt</span></div>'
-      + '<div class="bars">' + bar("Design", p.rate.design) + bar("Qualität", p.rate.quality) + bar("Preis", p.rate.price) + '</div>'
-      + '<div class="help">Gewichtung ' + w.design + " / " + w.quality + " / " + w.price + ' % — in den Einstellungen änderbar.</div></div>';
+      + '<button class="ratebox" data-f="rate" onclick="openField(\'' + p.id + '\',\'rate\')">'
+      + (rated
+         ? '<div class="score"><span class="n">' + (sc != null ? nf(sc,1) : "–") + '</span>'
+           + '<span class="o">/ 10 gesamt</span>' + ic("chev","chev") + '</div>'
+           + '<div class="bars">' + bar("Design", p.rate.design) + bar("Qualität", p.rate.quality)
+           + bar("Preis", p.rate.price) + '</div>'
+         : '<div class="score gap"><span class="o">Noch nicht bewertet</span>'
+           + ic("plus","chev") + '</div>')
+      + '</button>'
+      + '<div class="help">Gewichtung ' + w.design + " / " + w.quality + " / " + w.price
+      + ' % — in den Einstellungen änderbar.</div></div>';
   }
 
   /* ---- Verhandlung ---- */
@@ -2162,14 +2307,18 @@ function viewProduct(id){
 
   h += audioBlock(p);
 
-  if(p.note)
-    h += '<div class="sec"><h3>Notiz</h3><div style="font-size:14px;line-height:1.6;white-space:pre-wrap">' + esc(p.note) + '</div></div>';
+  h += '<div class="sec"><h3>Notiz</h3>'
+     + '<button class="notebox' + (p.note ? "" : " gap") + '" data-f="note" '
+     + 'onclick="openField(\'' + p.id + '\',\'note\')">'
+     + '<span class="tx">' + (p.note ? esc(p.note) : "Was dir am Stand aufgefallen ist.") + '</span>'
+     + ic(p.note ? "chev" : "plus","chev") + '</button></div>';
 
   h += '<div class="pad"><button class="btn" style="width:100%;margin-bottom:10px" onclick="shareProduct(\'' + p.id + '\')">'
      + ic("arrow","s") + 'Produkt teilen</button>'
      + '<button class="btn dgr" style="width:100%;margin-top:6px" '
      + 'onclick="delProduct(\'' + p.id + '\')">' + ic("trash","s") + 'Produkt löschen</button>'
      + '<div class="help" style="text-align:center;margin-top:14px">Erfasst ' + dstamp(p.createdAt) + '</div></div>';
+  noteSeen("specrows");
   return h;
 }
 function crow(label, val, hint){
@@ -2181,7 +2330,6 @@ function bar(label, val){
     + '<span class="tr"><i style="width:' + ((val||0)*10) + '%"></i></span>'
     + '<span class="vv">' + (val != null ? val : "–") + '</span></div>';
 }
-function spec(k, v){ return '<dt>' + esc(k) + '</dt><dd>' + v + '</dd>'; }
 
 async function setTarget(id, v){
   const p = S.products.find(x => x.id === id); if(!p) return;
@@ -3960,7 +4108,7 @@ async function setStage(id, st){
   render();
 }
 function stageChips(p){
-  return '<div class="chipset" style="margin-top:12px">'
+  return '<div class="chipset grid2">'
     + Object.keys(STAGES).map(k => '<button class="' + (p.stage===k?"on":"") + '" '
         + 'onclick="setStage(\'' + p.id + '\',\'' + k + '\')">' + ic(STAGES[k].i,"s") + STAGES[k].t + '</button>').join("")
     + '</div>';
@@ -4546,6 +4694,344 @@ function rankBlock(p){
          + 'vergleicht ehrlicher als der Stückpreis.</div>'
        : "")
     + '</div>';
+}
+</script>
+
+<script>
+"use strict";
+/* ============================================================
+   FELDER DIREKT AUSFUELLEN
+   Jede Zeile der Detailseite ist ein Formular. Kein Umweg ueber
+   den Bearbeiten-Bildschirm, kein Suchen nach dem richtigen Feld.
+   ============================================================ */
+
+function fsText(k, v, ph, mode){
+  return '<input class="inp' + (mode ? " num" : "") + '" data-k="' + k + '" '
+    + (mode ? 'inputmode="' + mode + '" ' : "")
+    + 'placeholder="' + esc(ph || "") + '" value="' + esc(v == null ? "" : String(v)) + '">';
+}
+function fsArea(k, v, ph){
+  return '<textarea class="inp" data-k="' + k + '" placeholder="' + esc(ph || "") + '">'
+    + esc(v || "") + '</textarea>';
+}
+function fsTriple(k, o){
+  return '<div class="three">' + ["l","w","h"].map(a =>
+      '<input class="inp num" inputmode="decimal" data-k="' + k + "." + a + '" oninput="fsVol()" '
+      + 'placeholder="' + a.toUpperCase() + '" value="' + ((o && o[a]) || "") + '">').join("")
+    + '</div><div class="fsvol" id="fsvol"></div>';
+}
+function fsVol(){
+  const el = document.getElementById("fsvol"); if(!el) return;
+  const g = a => {
+    const i = document.querySelector('.sheetbx [data-k$=".' + a + '"]');
+    return i ? (parseFloat(String(i.value).replace(",",".")) || 0) : 0;
+  };
+  const v = (g("l") * g("w") * g("h")) / 1e6;
+  el.textContent = v > 0 ? "Volumen " + nf(v,3) + " m³" : "Volumen — sobald alle drei Maße stehen";
+}
+/* Chips mit genau einer Auswahl. opts: ["A"] oder [["wert","Anzeige"]] */
+function fsChips(k, opts, cur){
+  const norm = opts.map(o => Array.isArray(o) ? o : [o,o]);
+  return '<input type="hidden" class="fshid" data-k="' + k + '" value="' + esc(cur || "") + '">'
+    + '<div class="chipset">' + norm.map(([v,t]) =>
+        '<button type="button" class="' + (cur === v ? "on" : "") + '" '
+        + 'onclick="fsPick(this,' + esc(JSON.stringify(v)) + ')">' + esc(t) + '</button>').join("")
+    + '</div>';
+}
+function fsPick(btn, val){
+  const box = btn.closest(".sheetbx"); if(!box) return;
+  const hid = box.querySelector(".fshid"); if(!hid) return;
+  const same = hid.value === val;
+  hid.value = same ? "" : val;
+  box.querySelectorAll(".chipset button").forEach(b => b.classList.remove("on"));
+  if(!same) btn.classList.add("on");
+}
+/* Mehrfachauswahl. Der versteckte Wert ist eine Liste, getrennt durch \u001f. */
+function fsMulti(k, opts, cur){
+  const on = new Set(cur || []);
+  return '<input type="hidden" class="fsmul" data-k="' + k + '" value="' + esc((cur||[]).join("\u001f")) + '">'
+    + '<div class="chipset">' + opts.map(o =>
+        '<button type="button" class="' + (on.has(o) ? "on" : "") + '" '
+        + 'onclick="fsToggle(this,' + esc(JSON.stringify(o)) + ')">' + esc(o) + '</button>').join("")
+    + '</div>';
+}
+function fsToggle(btn, val){
+  const box = btn.closest(".sheetbx"); if(!box) return;
+  const hid = box.querySelector(".fsmul"); if(!hid) return;
+  const list = hid.value ? hid.value.split("\u001f") : [];
+  const i = list.indexOf(val);
+  if(i < 0){ list.push(val); btn.classList.add("on"); }
+  else { list.splice(i,1); btn.classList.remove("on"); }
+  hid.value = list.join("\u001f");
+}
+/* Drei Schieber mit laufender Gesamtnote. */
+function fsRate(p){
+  const L = {design:"Design", quality:"Qualität", price:"Preis"};
+  return ["design","quality","price"].map(k =>
+      '<div class="fsrate"><span class="l">' + L[k] + '</span>'
+      + '<input type="range" min="0" max="10" step="1" data-k="' + k + '" oninput="fsScore()" '
+      + 'value="' + ((p.rate && p.rate[k]) || 0) + '">'
+      + '<span class="n" id="fsr-' + k + '">' + ((p.rate && p.rate[k] != null) ? p.rate[k] : "–") + '</span></div>').join("")
+    + '<div class="fsvol" id="fsvol">Gesamt –</div>';
+}
+function fsScore(){
+  const box = document.querySelector(".sheetbx"); if(!box) return;
+  const w = S.cfg.weights, v = {};
+  ["design","quality","price"].forEach(k => {
+    const i = box.querySelector('[data-k="' + k + '"]');
+    v[k] = i ? parseInt(i.value,10) : 0;
+    const n = document.getElementById("fsr-" + k);
+    if(n) n.textContent = v[k] ? v[k] : "–";
+  });
+  const sum = w.design + w.quality + w.price || 100;
+  const tot = (v.design*w.design + v.quality*w.quality + v.price*w.price) / sum;
+  const out = document.getElementById("fsvol");
+  if(out) out.textContent = tot > 0 ? "Gesamt " + nf(tot,1) + " / 10" : "Gesamt –";
+}
+function fsNum(v){ const n = parseFloat(String(v == null ? "" : v).replace(",",".")); return isNaN(n) ? null : n; }
+function fsTripleApply(p, k, d){
+  const o = {};
+  for(const a of ["l","w","h"]){ const n = fsNum(d[k + "." + a]); if(n != null) o[a] = n; }
+  p[k] = o;
+}
+
+const FIELDS = {
+  title: { label:"Name", gapText:"Name",
+    form: p => fsText("title", p.title, "Cloud Sofa 03"),
+    hint: "Der Name, unter dem du es wiederfinden willst. Muss nicht der offizielle sein.",
+    apply: (p,d) => { p.title = d.title; } },
+
+  price: { label:"Preis", gapText:"Preis",
+    form: p => '<div class="two"><div class="field"><label>Betrag</label>'
+      + fsText("amount", p.price && p.price.amount != null ? p.price.amount : "", "3980", "decimal")
+      + '</div><div class="field"><label>Währung</label>'
+      + '<select class="inp" data-k="currency">' + Object.keys(CUR).map(c =>
+          '<option value="' + c + '"' + ((p.price && p.price.currency) === c ? " selected" : "") + '>'
+          + CUR[c].sym + " " + CUR[c].name + '</option>').join("") + '</select></div></div>',
+    hint: "Immer in der Währung eintragen, in der angeboten wurde. Umgerechnet wird danach.",
+    apply: (p,d) => { p.price = p.price || {}; p.price.amount = fsNum(d.amount);
+                      if(d.currency) p.price.currency = d.currency; } },
+
+  kind: { label:"Preisart", gapText:"Preisart",
+    form: p => fsChips("kind", PRICE_KINDS, p.price && p.price.kind),
+    hint: "EXW ab Werk, FOB ab Hafen, CIF frei Bestimmungshafen, DDP frei Haus. "
+        + "Ohne Preisart sind zwei Angebote nicht vergleichbar — zwischen EXW und CIF liegen leicht 15 %.",
+    apply: (p,d) => { p.price = p.price || {}; p.price.kind = d.kind; } },
+
+  basis: { label:"Preisbasis",
+    form: p => fsChips("basis", Object.keys(BASIS).map(k => [k, BASIS[k]]), (p.price && p.price.basis) || "piece"),
+    hint: "Gilt der Preis je Stück, je Set oder je Karton?",
+    apply: (p,d) => { p.price = p.price || {}; p.price.basis = d.basis || "piece"; } },
+
+  supplier: { label:"Lieferant", gapText:"Lieferant",
+    form: p => {
+      const list = S.suppliers.filter(x => x.fairId === S.cfg.activeFair);
+      return '<input type="hidden" class="fshid" data-k="supplierId" value="' + esc(p.supplierId || "") + '">'
+        + (list.length
+           ? '<div class="chipset">' + list.map(x =>
+               '<button type="button" class="' + (p.supplierId === x.id ? "on" : "") + '" '
+               + 'onclick="fsPick(this,' + esc(JSON.stringify(x.id)) + ')">' + esc(x.name) + '</button>').join("")
+             + '</div>'
+           : '<div class="help" style="margin:0">Auf dieser Messe ist noch kein Lieferant angelegt.</div>')
+        + '<button class="btn" style="width:100%;margin-top:14px" onclick="fsNewSupplier()">'
+        + ic("plus","s") + 'Neuer Lieferant</button>';
+    },
+    apply: (p,d) => { p.supplierId = d.supplierId || null; } },
+
+  booth: { label:"Halle und Stand", gapText:"Stand", need:"supplier",
+    form: p => { const s = supplierOf(p) || {};
+      return '<div class="two"><div class="field"><label>Halle</label>' + fsText("hall", s.hall, "5.1")
+        + '</div><div class="field"><label>Stand</label>' + fsText("booth", s.booth, "B17") + '</div></div>'; },
+    hint: "Gilt für den ganzen Lieferanten — der Rückweg am letzten Messetag hängt daran.",
+    apply: (p,d) => { const s = supplierOf(p); if(!s) return;
+      s.hall = d.hall; s.booth = d.booth; s.updatedAt = Date.now(); DB.put("suppliers", s); } },
+
+  sku: { label:"Modellnr.", gapText:"Modellnr.",
+    form: p => fsText("sku", p.sku, "HT-8827"),
+    hint: "Steht meist klein auf dem Preisschild. Ohne sie weiß der Lieferant später nicht, welches Modell du meinst.",
+    apply: (p,d) => { p.sku = d.sku; } },
+
+  category: { label:"Kategorie", gapText:"Kategorie",
+    form: p => fsChips("category", CATS, p.category),
+    hint: "Steuert Vergleich, Statistik und die Preis-Einordnung.",
+    apply: (p,d) => { p.category = d.category; } },
+
+  variants: { label:"Ausführungen und Farben",
+    form: p => fsText("variants", p.variants, "Beige, Anthrazit, Eiche natur"),
+    apply: (p,d) => { p.variants = d.variants; } },
+
+  dims: { label:"Produktmaße", gapText:"Produktmaß",
+    form: p => fsTriple("dims", p.dims),
+    hint: "L × B × H in cm, das fertige Möbel.",
+    apply: (p,d) => fsTripleApply(p,"dims",d) },
+
+  carton: { label:"Kartonmaße", gapText:"Kartonmaß",
+    form: p => fsTriple("carton", p.carton),
+    hint: "L × B × H in cm. Für Fracht und Container zählt der Karton, nicht das Möbel — "
+        + "der Unterschied macht schnell 20 % aus.",
+    apply: (p,d) => fsTripleApply(p,"carton",d) },
+
+  material: { label:"Material", gapText:"Material",
+    form: p => fsText("material", p.material, "Bouclé / Aluminium / Foam"),
+    apply: (p,d) => { p.material = d.material; } },
+
+  moq: { label:"MOQ", gapText:"MOQ",
+    form: p => fsText("moq", p.moq, "10", "numeric"),
+    hint: "Mindestabnahme. Oft je Farbe, nicht je Artikel — im Zweifel nachfragen.",
+    apply: (p,d) => { p.moq = fsNum(d.moq); } },
+
+  leadTime: { label:"Lead Time", gapText:"Lead Time",
+    form: p => fsText("leadTime", p.leadTime, "25–35 Tage"),
+    hint: "Produktionszeit ab Auftrag, ohne Seefracht.",
+    apply: (p,d) => { p.leadTime = d.leadTime; } },
+
+  tags: { label:"Tags",
+    form: p => fsMulti("tags", TAGS, p.tags),
+    hint: "Mehrere möglich. Tags filtern die Liste und tauchen im Messebericht auf.",
+    apply: (p,d) => { p.tags = d.tags ? d.tags.split("\u001f").filter(Boolean) : []; } },
+
+  rate: { label:"Bewertung",
+    form: p => fsRate(p),
+    hint: "Design, Qualität, Preis — je 0 bis 10. Die Gesamtnote gewichtet nach deinen Einstellungen.",
+    apply: (p,d) => { p.rate = p.rate || {};
+      ["design","quality","price"].forEach(k => { const n = parseInt(d[k],10); p.rate[k] = n > 0 ? n : null; }); } },
+
+  note: { label:"Notiz",
+    form: p => fsArea("note", p.note, "Was dir am Stand aufgefallen ist."),
+    apply: (p,d) => { p.note = d.note; } }
+};
+
+/* Reihenfolge der Luecken: erst was den Preis vergleichbar macht,
+   dann was fuer Fracht und Rueckweg gebraucht wird, dann der Rest. */
+const GAP_ORDER = ["title","price","kind","supplier","booth","category","sku",
+                   "carton","dims","material","moq","leadTime"];
+
+function fieldEmpty(p, k){
+  switch(k){
+    case "title":    return !p.title;
+    case "price":    return !p.price || p.price.amount == null;
+    case "kind":     return !p.price || !p.price.kind || p.price.kind === "unbekannt";
+    case "supplier": return !p.supplierId;
+    case "booth":    { const s = supplierOf(p); return !s || (!s.hall && !s.booth); }
+    case "carton":   return !cbm(p.carton);
+    case "dims":     return !cbm(p.dims);
+    case "moq":      return !p.moq;
+    default:         return !p[k];
+  }
+}
+function gapsOf(p){ return GAP_ORDER.filter(k => fieldEmpty(p, k)); }
+
+let FILL_QUEUE = null;
+
+async function editField(pid, key){
+  const p = S.products.find(x => x.id === pid); if(!p) return;
+  const f = FIELDS[key]; if(!f) return;
+  if(f.need === "supplier" && !supplierOf(p)){
+    toast("Zuerst den Lieferanten zuordnen.");
+    return editField(pid, "supplier");
+  }
+  const q = FILL_QUEUE && FILL_QUEUE.pid === pid ? FILL_QUEUE : null;
+  const step = q ? '<span class="step">' + (q.done + 1) + " von " + q.total + '</span>' : "";
+  const more = q && q.keys.length > 1;
+  const bar = q
+    ? '<div class="fsbar"><i style="--from:' + (q.done / q.total).toFixed(3)
+      + ';--to:' + ((q.done + 1) / q.total).toFixed(3) + '"></i></div>'
+    : "";
+
+  const pr = openSheet(bar + '<h3>' + esc(f.label) + step + '</h3>'
+    + f.form(p)
+    + (f.hint ? '<div class="help" style="margin:14px 0 0">' + f.hint + '</div>' : "")
+    + '<div class="sheetact">'
+      + '<button class="btn" onclick="closeSheet(null)">' + (q ? "Abbrechen" : "Zurück") + '</button>'
+      + '<button class="btn pri" onclick="submitSheet()">' + (more ? "Weiter" : "Sichern") + '</button>'
+    + '</div>');
+  if(SHEET) SHEET.el.addEventListener("keydown", e => {
+    if(e.key === "Enter" && e.target.tagName !== "TEXTAREA"){ e.preventDefault(); submitSheet(); }
+  });
+  if(key === "dims" || key === "carton") setTimeout(fsVol, 40);
+  if(key === "rate") setTimeout(fsScore, 40);
+
+  const res = await pr;
+  if(!res){ if(FS_HANDOFF) FS_HANDOFF = false; else FILL_QUEUE = null; return; }
+
+  await f.apply(p, res);
+  p.updatedAt = Date.now();
+  await DB.put("products", p);
+  await loadAll();
+  render();
+  flashRow(key);
+  const gb = document.querySelector(".gapbtn");
+  if(gb){ gb.classList.add("drop"); setTimeout(() => gb.classList.remove("drop"), 560); }
+
+  if(q){
+    q.keys.shift(); q.done++;
+    if(q.keys.length){ return editField(pid, q.keys[0]); }
+    FILL_QUEUE = null;
+    toast(gapsOf(p).length ? "Fertig für jetzt." : "Vollständig.");
+  }
+}
+
+async function fsNewSupplier(){
+  FS_HANDOFF = true;                 /* uebergibt an das naechste Sheet, bricht nicht ab */
+  closeSheet(null);
+  await new Promise(r => setTimeout(r, 260));
+  const r = await askForm("Neuer Lieferant", [
+    {k:"name",  label:"Firmenname",   placeholder:"Shanghai Hengtai Furniture"},
+    {k:"hall",  label:"Halle",        placeholder:"5.1"},
+    {k:"booth", label:"Standnummer",  placeholder:"B17"}
+  ], "Anlegen");
+  if(!r || (!r.name && !r.booth)){ FILL_QUEUE = null; return; }
+  const s = { id:uid(), fairId:S.cfg.activeFair, name:r.name || ("Stand " + r.booth),
+              hall:r.hall, booth:r.booth, contact:"", wechat:"", phone:"", email:"",
+              website:"", city:"", note:"", checks:[], rating:null,
+              createdAt:Date.now(), updatedAt:Date.now() };
+  await DB.put("suppliers", s);
+  const pid = FS_TARGET;
+  const p = S.products.find(x => x.id === pid);
+  if(p){ p.supplierId = s.id; p.updatedAt = Date.now(); await DB.put("products", p); }
+  await loadAll();
+  render();
+  flashRow("supplier");
+  toast("Lieferant angelegt.");
+  const q = FILL_QUEUE && FILL_QUEUE.pid === pid ? FILL_QUEUE : null;
+  if(q){
+    while(q.keys.length && !fieldEmpty(p, q.keys[0])){ q.keys.shift(); q.done++; }
+    if(q.keys.length) return editField(pid, q.keys[0]);
+    FILL_QUEUE = null;
+  }
+}
+
+let FS_TARGET = null, FS_HANDOFF = false;
+function openField(pid, key){ FS_TARGET = pid; FILL_QUEUE = null; return editField(pid, key); }
+function fillAll(pid){
+  const p = S.products.find(x => x.id === pid); if(!p) return;
+  const keys = gapsOf(p);
+  if(!keys.length){ toast("Es fehlt nichts mehr."); return; }
+  FS_TARGET = pid;
+  FILL_QUEUE = { pid, keys, total:keys.length, done:0 };
+  return editField(pid, keys[0]);
+}
+function flashRow(key){
+  const el = document.querySelector('[data-f="' + key + '"]');
+  if(!el) return;
+  el.classList.remove("lit");
+  void el.offsetWidth;
+  el.classList.add("lit");
+  setTimeout(() => el.classList.remove("lit"), 1200);
+}
+
+/* Eine Zeile der Datenliste. val==null heisst: Luecke. */
+function srow(p, key, label, val){
+  const gap = val == null || val === "";
+  return '<button class="sprow' + (gap ? " gap" : "") + '" data-f="' + key + '" '
+    + 'onclick="openField(\'' + p.id + '\',\'' + key + '\')">'
+    + '<span class="k">' + esc(label) + '</span>'
+    + '<span class="v">' + (gap ? "Eintragen" : val) + '</span>'
+    + ic(gap ? "plus" : "chev", "chev") + '</button>';
+}
+function srowRO(label, val){
+  return '<div class="sprow ro"><span class="k">' + esc(label) + '</span>'
+    + '<span class="v">' + val + '</span></div>';
 }
 </script>
 
