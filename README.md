@@ -296,6 +296,56 @@ Container-Planer.
 Updates meldet die App über den Service Worker und lädt erst nach Bestätigung
 neu — nicht mitten in der Erfassung.
 
+## Grosse iPhones, Quer- und Hochformat
+
+Die App ist auf 390 Punkte Breite entstanden. Ab **430 Punkten** — iPhone Pro
+Max und aufwärts — greift ein eigener Satz Regeln. Nicht grössere Schrift: ein
+Buchstabe ist in Punkten auf jedem iPhone gleich gross. Sondern mehr Inhalt und
+grosszügigere Flächen: 24 statt 20 Punkte Seitenrand, Produktbilder im
+Verhältnis 4:3 statt quadratisch (Möbel sind breiter als hoch, und es passt
+eine halbe Reihe mehr auf den Schirm), breitere Karten im Streifen der zuletzt
+erfassten Produkte, und jede Trefferfläche auf mindestens 44 Punkte — die
+Datenzeilen liegen bei 49, die Chips bei 44, die Navigation bei 58.
+
+Die **Dynamic Island** wird über `safe-area-inset-*` freigehalten, im
+Hochformat oben, im Querformat seitlich. Letzteres fehlte: die App kannte nur
+oben und unten, quer lag der Inhalt unter der Insel. Jetzt respektieren
+`#app`, Navigation, Aktionsleiste, Auswahlleiste, Recorder, Sheets und die
+Vollbildanzeige alle vier Seiten.
+
+Im **Querformat** fraß ein einziges Produktfoto den ganzen Bildschirm — 4:3 auf
+956 Punkte Breite sind 717 Punkte Höhe, mehr als das Gerät hat. Jetzt ist die
+Galerie ein Streifen über 38 % der Höhe, die Navigation legt Beschriftung neben
+das Symbol statt darunter, das Produktraster geht auf vier Spalten und das
+Rahmenwerk drumherum wird schmaler, damit Ware statt Bedienung zu sehen ist.
+
+## Zurückwischen und Scrollstand
+
+Auf 6,9 Zoll liegt der Zurück-Pfeil oben links ausserhalb dessen, was ein
+Daumen erreicht. Ein **Zug vom linken Rand** tut dasselbe: die Seite folgt
+gedämpft und blendet leicht ab, ab 78 Punkten geht es zurück. Über
+Bildstreifen, Chip-Reihen, Tabellen und Eingabefeldern greift die Geste nicht,
+und von der Startseite aus auch nicht — dort führt kein Zurück hin.
+
+Der **Scrollstand jeder Seite wird gemerkt**. Wer aus einem Produkt in eine
+Liste mit dreissig Einträgen zurückkommt, landet wieder dort, wo er war, statt
+oben.
+
+## Fotos vom iPhone
+
+Ein Foto vom 17 Pro Max hat 24 Megapixel, im Modus für maximale Auflösung 48.
+Die App hat es zweimal parallel dekodiert — einmal fürs Bild, einmal fürs
+Vorschaubild — was auf iOS den Speicher sprengt. Jetzt wird einmal dekodiert
+und beides aus derselben Quelle gezogen.
+
+Verkleinert wird in **Halbierungsschritten**: ein einziger Sprung von 8000 auf
+1600 Pixel franst sichtbar aus, weil Canvas bei mehr als Faktor zwei nur grob
+filtert. 4000 × 3000 Pixel sind in gut 200 ms auf 1600 × 1200 plus 400 × 300
+Vorschau heruntergerechnet.
+
+Und `createImageBitmap` bekommt jetzt `imageOrientation: "from-image"`. Ohne
+das ignoriert es die EXIF-Drehung — hochkant fotografierte Schränke lagen quer.
+
 ## Auf dem iPhone installieren
 
 Die App braucht eine echte `https://`-Adresse — über `file://` funktionieren
