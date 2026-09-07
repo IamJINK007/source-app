@@ -289,8 +289,6 @@ table.cmp th:first-child,table.cmp td:first-child{text-align:left;color:var(--in
 table.cmp thead th{font-size:12px;font-weight:500;color:var(--ink);vertical-align:bottom;padding-bottom:12px}
 table.cmp thead th img{width:58px;height:58px;object-fit:cover;border-radius:9px;display:block;margin:0 auto 8px;background:var(--s2)}
 table.cmp td.win{color:var(--ink);font-weight:600}
-table.cmp td.win::after{content:"";display:inline-block;width:3px;height:3px;border-radius:50%;
-  background:var(--ink);vertical-align:middle;margin-left:6px;margin-bottom:2px}
 .verdict{margin:22px 20px 0;border-top:1px solid var(--ln)}
 .verdict div{display:flex;justify-content:space-between;align-items:baseline;gap:8px 14px;flex-wrap:wrap;
   padding:13px 0;border-bottom:1px solid var(--ln);font-size:14px}
@@ -593,6 +591,22 @@ details.more>summary span{margin-left:auto}
 .pastebtn:active{transform:scale(.96);color:var(--ink)}
 .pastebtn svg.ic{color:var(--ink3)}
 
+/* Gewinnerzelle im Vergleich: getönt statt Punkt */
+table.cmp td.win{color:var(--ink);font-weight:600;background:rgba(243,241,237,.055);
+  box-shadow:inset 0 0 0 1px rgba(243,241,237,.09);border-radius:4px}
+table.cmp tr.same td{color:var(--ink3)}
+table.cmp tr.same td:first-child{color:var(--ln2)}
+.cmpwrap{position:relative}
+.cmpwrap::after{content:"";position:absolute;top:0;right:0;bottom:0;width:34px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(10,10,9,0),var(--bg))}
+
+/* Backup: Zustandszeile unter der Hauptaktion */
+.bkstate{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;
+  color:var(--ink2);letter-spacing:0;margin-top:-12px}
+.bkstate svg.ic{color:#7FB89A}
+.bkstate.due{color:var(--gold)}
+.bkstate.due svg.ic{color:var(--gold)}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
     transition-duration:.01ms!important}
@@ -713,6 +727,19 @@ const DEFAULTS = {
 
 
 /* ---------- Icons ---------- */
+/* ---------- Erklärtexte, die sich zurückziehen ----------
+   Am ersten Tag hilft der lange Text, am dritten steht er nur im Weg.
+   Nach drei Besuchen bleibt die Kurzfassung. */
+function seenCount(key){ return (S.cfg && S.cfg.seen && S.cfg.seen[key]) || 0; }
+function noteSeen(key){
+  if(!S.cfg) return;
+  S.cfg.seen = S.cfg.seen || {};
+  if(seenCount(key) < 5){ S.cfg.seen[key] = seenCount(key) + 1; saveCfg(); }
+}
+function primer(key, long, short){
+  return seenCount(key) < 3 ? long : (short || "");
+}
+
 function empty(icon, line, sub){
   return '<div class="empty">' + ic(icon,"xl") + '<p>' + esc(line) + '</p>'
     + (sub ? '<p class="q">' + esc(sub) + '</p>' : "") + '</div>';
@@ -804,6 +831,7 @@ const S = {
   allFairs:false,          // Suche über alle Messen statt nur die aktive
   scanMore:false,          // Aufklapper im Erfassen-Flow bleibt offen, wenn er offen war
   selMode:false,           // Auswahlmodus der Produktliste (Langdruck oder Kopfzeile)
+  seen:null,               // Platzhalter, der eigentliche Zähler liegt in den Einstellungen
   compare:new Set(),
   filter:{q:"", status:"", cat:"", supplier:"", hall:"", tag:"", stage:""},
   draft:null                // laufende Erfassung
@@ -1586,28 +1614,46 @@ function dataDump(){
            settings:S.cfg, fairs:S.fairs, suppliers:S.suppliers, products:S.products };
 }
 function viewBackup(){
-  return hdr("Backup & Export", {back:true})
-   + '<div class="note-w"><b>Alles liegt nur auf diesem Handy.</b> Kein Server, keine Cloud. '
-     + 'Wenn das Gerät weg ist, ist die Messe weg. Einmal am Abend das ZIP exportieren und in iCloud oder eine Mail an dich selbst legen.</div>'
-   + '<div class="pad"><div class="rows stagger">'
-     + '<button class="row" onclick="expZip(this)">' + ic("download") + '<span class="t">Vollbackup als ZIP'
-       + '<small>Alle Daten und alle Fotos. Das ist das echte Backup.</small></span>'
-       + '<span class="chev">' + ic("chev","s") + '</span></button>'
-     + '<button class="row" onclick="expJson()">' + ic("file") + '<span class="t">Nur Daten als JSON'
-       + '<small>Ohne Fotos, klein und schnell.</small></span>'
-       + '<span class="chev">' + ic("chev","s") + '</span></button>'
-     + '<button class="row" onclick="expCsv()">' + ic("table") + '<span class="t">Produkte als CSV'
-       + '<small>Für Excel und Numbers, eine Zeile je Produkt.</small></span>'
-       + '<span class="chev">' + ic("chev","s") + '</span></button>'
-     + '<button class="row wrap" onclick="impPick()">' + ic("folder") + '<span class="t">Backup einspielen'
-       + '<small>ZIP oder JSON. Du wählst danach: zusammenführen oder ersetzen.</small></span>'
-       + '<span class="chev">' + ic("chev","s") + '</span></button>'
-   + '</div>'
-   + '<div class="help" style="margin-top:18px">Letztes Backup: <b>' + (S.cfg.lastBackup ? "vor " + ago(S.cfg.lastBackup) : "noch nie") + '</b>'
-     + '<br><span id="storage">Speicher wird ermittelt…</span></div></div>';
+  const age  = S.cfg.lastBackup ? Date.now() - S.cfg.lastBackup : null;
+  const due  = age === null || age > 20*3600*1000;
+  const many = fairProducts().length;
+
+  let h = hdr("Backup & Export", {back:true});
+  h += '<div class="pad">'
+    /* Das ist die eine Handlung, die eine Messe rettet. Sie sieht jetzt auch so aus. */
+    + '<button class="cta" onclick="expZip(this)" id="zipbtn">' + ic("download") + 'Vollbackup sichern</button>'
+    + '<div class="bkstate' + (due ? " due" : "") + '">'
+      + (S.cfg.lastBackup
+         ? (due ? ic("alert","s") : ic("check","s")) + '<span>Letztes Backup vor ' + ago(S.cfg.lastBackup) + '</span>'
+         : ic("alert","s") + '<span>Noch nie gesichert' + (many ? ' — ' + many + ' Produkte ungesichert' : "") + '</span>')
+    + '</div>'
+    + '<div class="help" style="text-align:center;margin-top:10px">Daten und alle Fotos in einer ZIP-Datei. '
+      + 'Über das Teilen-Menü in iCloud legen oder an dich selbst mailen.</div>';
+
+  h += '<div class="lbl-sec">Weitere Formate</div><div class="rows">'
+    + '<button class="row wrap" onclick="expJson()">' + ic("file") + '<span class="t">Nur Daten als JSON'
+      + '<small>Ohne Fotos, klein und schnell.</small></span>'
+      + '<span class="chev">' + ic("chev","s") + '</span></button>'
+    + '<button class="row wrap" onclick="expCsv()">' + ic("table") + '<span class="t">Produkte als CSV'
+      + '<small>Für Excel und Numbers, eine Zeile je Produkt.</small></span>'
+      + '<span class="chev">' + ic("chev","s") + '</span></button>'
+    + '<button class="row wrap" onclick="impPick()">' + ic("folder") + '<span class="t">Backup einspielen'
+      + '<small>Du wählst danach: zusammenführen oder ersetzen.</small></span>'
+      + '<span class="chev">' + ic("chev","s") + '</span></button>'
+    + '</div>';
+
+  const pr = primer("backup",
+    "Alles liegt nur auf diesem Handy. Kein Server, keine Cloud. Wenn das Gerät weg ist, ist die Messe weg.",
+    "Alles liegt nur auf diesem Handy.");
+  h += '<div class="help" style="margin-top:20px">' + pr
+    + '<br><span id="storage">Speicher wird ermittelt…</span></div></div>';
+  noteSeen("backup");
+  return h;
 }
 async function expZip(btn){
   btn.style.opacity = ".5";
+  const label = btn.textContent;
+  btn.textContent = "Wird gepackt…";
   try{
     const files = [{ name:"data.json", data:new TextEncoder().encode(JSON.stringify(dataDump(), null, 1)) }];
     const ids = new Set();
@@ -1619,7 +1665,7 @@ async function expZip(btn){
       if(!rec || !rec.blob) continue;
       files.push({ name:"photos/" + id + ".jpg", data:new Uint8Array(await rec.blob.arrayBuffer()),
                    role: rec.role || "product" });
-      if(++i % 10 === 0) btn.querySelector(".t").firstChild.textContent = "Fotos… " + i + "/" + ids.size;
+      if(++i % 5 === 0) btn.textContent = "Fotos " + i + " / " + ids.size;
     }
     const aids = new Set();
     S.products.forEach(p => (p.voiceIds||[]).forEach(a => aids.add(a)));
@@ -1638,7 +1684,7 @@ async function expZip(btn){
     S.cfg.lastBackup = Date.now(); await saveCfg();
     toast("ZIP erstellt: " + files.length + " Dateien, " + (zip.size/1048576).toFixed(1) + " MB");
   }catch(e){ toast("Export fehlgeschlagen: " + e.message); }
-  btn.style.opacity = ""; render();
+  btn.style.opacity = ""; btn.textContent = label; render();
 }
 async function expJson(){
   download(new Blob([JSON.stringify(dataDump(), null, 1)], {type:"application/json"}),
@@ -2450,40 +2496,50 @@ function viewCompare(){
   if(items.length > 4) items = items.slice(0,4);
   if(items.length < 2)
     return hdr("Vergleich",{back:true})
-     + empty("scales","Mindestens zwei Produkte auswählen.","In der Produktliste oben rechts auf jedem Bild.")
+     + empty("scales","Mindestens zwei Produkte auswählen.","In der Produktliste lange auf eine Kachel drücken.")
      + '<div class="pad"><a class="cta ghost" href="#/products">' + ic("grid") + 'Zu den Produkten</a></div>';
 
   const rows = [
-    {k:"RMB",        get:p => priceIn(p,"CNY"), fmt:v => money(v,"CNY"), best:"min"},
-    {k:"EUR",        get:p => priceIn(p,"EUR"), fmt:v => money(v,"EUR"), best:"min"},
-    {k:"USD",        get:p => priceIn(p,"USD"), fmt:v => money(v,"USD"), best:"min"},
-    {k:"Preisart",   get:p => p.price && p.price.kind, fmt:v => v, best:null},
-    {k:"MOQ",        get:p => p.moq, fmt:v => nf(v), best:"min"},
-    {k:"Volumen",    get:p => itemCbm(p), fmt:v => nf(v,2) + " m³", best:"min"},
-    {k:"Landed",     get:p => { const l = S.cfg.calcMode !== "off" ? landed(p) : null; return l ? l.eff : null; },
-                     fmt:v => money(v,"EUR"), best:"min"},
-    {k:"Faktor",     get:p => { const m = margin(p); return m ? m.factor : null; }, fmt:v => nf(v,2) + " ×", best:"max"},
-    {k:"Design",     get:p => p.rate && p.rate.design,  fmt:v => v, best:"max"},
-    {k:"Qualität",   get:p => p.rate && p.rate.quality, fmt:v => v, best:"max"},
-    {k:"Gesamt",     get:p => score(p), fmt:v => nf(v,1), best:"max"},
-    {k:"Lead Time",  get:p => p.leadTime, fmt:v => v, best:null},
-    {k:"Supplier",   get:p => { const s = supplierOf(p); return s && s.rating; }, fmt:v => v + " / 10", best:"max"}
+    {k:"RMB",       get:p => priceIn(p,"CNY"), fmt:v => money(v,"CNY"), best:"min"},
+    {k:"EUR",       get:p => priceIn(p,"EUR"), fmt:v => money(v,"EUR"), best:"min"},
+    {k:"USD",       get:p => priceIn(p,"USD"), fmt:v => money(v,"USD"), best:"min"},
+    {k:"Preisart",  get:p => p.price && p.price.kind, fmt:v => v, best:null},
+    {k:"MOQ",       get:p => p.moq, fmt:v => nf(v), best:"min"},
+    {k:"Volumen",   get:p => itemCbm(p), fmt:v => nf(v,2) + " m³", best:"min"},
+    {k:"Landed",    get:p => { const l = S.cfg.calcMode !== "off" ? landed(p) : null; return l ? l.eff : null; },
+                    fmt:v => money(v,"EUR"), best:"min"},
+    {k:"Faktor",    get:p => { const m = margin(p); return m ? m.factor : null; }, fmt:v => nf(v,2) + " ×", best:"max"},
+    {k:"Design",    get:p => p.rate && p.rate.design,  fmt:v => v, best:"max"},
+    {k:"Qualität",  get:p => p.rate && p.rate.quality, fmt:v => v, best:"max"},
+    {k:"Gesamt",    get:p => score(p), fmt:v => nf(v,1), best:"max"},
+    {k:"Lead Time", get:p => p.leadTime, fmt:v => v, best:null},
+    {k:"Supplier",  get:p => { const s = supplierOf(p); return s && s.rating; }, fmt:v => v + " / 10", best:"max"}
   ].filter(r => items.some(p => { const v = r.get(p); return v != null && v !== ""; }));
 
   let h = hdr("Vergleich", {back:true, action:"clearSel()", actionLabel:"Leeren"});
-  h += '<div class="cmpwrap"><table class="cmp"><thead><tr><th></th>'
+  h += '<div class="cmpwrap" id="cmpw"><table class="cmp"><thead><tr><th></th>'
     + items.map(p => '<th>' + (p.photoIds && p.photoIds[0] ? '<img data-ph="' + p.photoIds[0] + '" alt="">' : "")
         + esc((p.title || "Ohne Namen").slice(0,16)) + '</th>').join("") + '</tr></thead><tbody>';
+
+  let sameRows = 0;
   rows.forEach(r => {
     const vals = items.map(r.get);
-    const nums = vals.filter(v => typeof v === "number" && !isNaN(v));
+    const shown = vals.map(v => v == null || v === "" ? "–" : String(r.fmt(v)));
+    /* Eine Zeile, in der alle dasselbe sagen, entscheidet nichts — dort darf
+       auch niemand als Gewinner markiert werden. */
+    const allSame = shown.every(x => x === shown[0]);
+    if(allSame) sameRows++;
     let bestV = null;
-    if(r.best && nums.length > 1) bestV = r.best === "min" ? Math.min.apply(null,nums) : Math.max.apply(null,nums);
-    h += '<tr><td>' + r.k + '</td>' + vals.map(v =>
-        '<td' + (bestV != null && v === bestV ? ' class="win"' : "") + '>'
-        + (v == null || v === "" ? "–" : esc(String(r.fmt(v)))) + '</td>').join("") + '</tr>';
+    if(!allSame && r.best){
+      const nums = vals.filter(v => typeof v === "number" && !isNaN(v));
+      if(nums.length > 1) bestV = r.best === "min" ? Math.min.apply(null,nums) : Math.max.apply(null,nums);
+    }
+    h += '<tr' + (allSame ? ' class="same"' : "") + '><td>' + r.k + '</td>'
+      + vals.map((v,i) => '<td' + (bestV != null && v === bestV ? ' class="win"' : "") + '>'
+        + esc(shown[i]) + '</td>').join("") + '</tr>';
   });
   h += '</tbody></table></div>';
+  if(items.length > 2) h += '<div class="help pad" style="margin-top:10px">Seitlich wischen für alle Spalten.</div>';
 
   const withPrice = items.filter(p => priceIn(p,"EUR") != null);
   const cheapest = withPrice.slice().sort((a,b) => priceIn(a,"EUR") - priceIn(b,"EUR"))[0];
@@ -2492,16 +2548,21 @@ function viewCompare(){
   const value = items.filter(p => score(p) != null && priceIn(p,"EUR"))
     .map(p => ({p, v: score(p) / priceIn(p,"EUR") * 100}))
     .sort((a,b) => b.v - a.v)[0];
-  const fastest = items.filter(p => p.leadTime)[0];
 
   h += '<div class="verdict">'
     + (value    ? vrow("Best Value",   value.p.title || "Ohne Namen", nf(value.v,2) + " Punkte je 100 €") : "")
     + (cheapest ? vrow("Cheapest",     cheapest.title || "Ohne Namen", money(priceIn(cheapest,"EUR"),"EUR")) : "")
     + (bestQ    ? vrow("Best Quality", bestQ.title || "Ohne Namen", (bestQ.rate.quality||0) + " / 10") : "")
-    + '</div>'
-    + '<div class="help pad" style="padding-bottom:28px;margin-top:16px">Best Value = Gesamtnote ÷ Preis in Euro, mal 100. '
-      + 'Kein Bauchgefühl, sondern eine Formel, die du nachrechnen kannst.</div>';
-  return h;
+    + '</div>';
+  if(sameRows)
+    h += '<div class="help pad" style="margin-top:14px">' + sameRows
+       + (sameRows === 1 ? " Zeile ist" : " Zeilen sind") + ' bei allen gleich und darum zurückgenommen.</div>';
+  const pr = primer("compare",
+    "Best Value = Gesamtnote ÷ Preis in Euro, mal 100. Kein Bauchgefühl, sondern eine Formel, die du nachrechnen kannst.",
+    "Best Value = Note ÷ Preis × 100.");
+  if(pr) h += '<div class="help pad" style="padding-bottom:28px;margin-top:8px">' + pr + '</div>';
+  noteSeen("compare");
+  return h + '<div style="height:16px"></div>';
 }
 </script>
 
@@ -3727,24 +3788,26 @@ function viewInbox(){
 
   const gs = clusters(open);
   return hdr("Inbox", {back:true})
-   + '<div class="note-w"><b>' + open.length + ' unbearbeitet.</b> Fotos, die innerhalb von zwölf Minuten '
-     + 'entstanden sind, gehören meist zum selben Stand. Bestätige die Gruppe mit einem Tap — das spart den '
-     + 'größten Teil der Tipparbeit. Preise trägst du direkt hier ein.</div>'
+   + '<div class="note-w"><b>' + open.length + ' unbearbeitet.</b> '
+     + primer("inbox",
+        "Fotos, die innerhalb von zwölf Minuten entstanden sind, gehören meist zum selben Stand. "
+        + "Bestätige die Gruppe mit einem Tap — das spart den größten Teil der Tipparbeit. "
+        + "Preise trägst du direkt hier ein.",
+        "Preis direkt in der Zeile, Stand für die ganze Gruppe.") + '</div>'
    + '<div class="stagger">' + gs.map((g,i) => {
       const sup = g.items.map(x => supplierOf(x)).find(Boolean);
-      const missAll = Array.from(new Set(g.items.flatMap(x => missingOf(x))));
       return '<div class="grp">'
         + '<div class="gh">' + ic("inbox") + '<span class="tt">'
           + g.items.length + (g.items.length === 1 ? " Produkt" : " Produkte")
           + '<small>' + dstamp(g.first).slice(11) + "–" + dstamp(g.last).slice(11)
-          + (sup ? ' · ' + esc(sup.name) : " · kein Lieferant") + ' · offen: ' + esc(missAll.join(", ")) + '</small></span></div>'
+          + (sup ? ' · ' + esc(sup.name) : " · kein Lieferant") + '</small></span></div>'
         + g.items.map(x => inboxRow(x)).join("")
         + '<div class="ga" style="padding-top:14px">'
           + '<button class="btn pri" onclick="assignGroup(' + i + ')">' + ic("building","s") + 'Stand zuordnen</button>'
           + '<button class="btn sm" onclick="bulkKindGroup(' + i + ')">' + ic("table","s") + 'Preisart</button>'
         + '</div></div>';
      }).join("") + '</div>'
-   + '<div style="height:20px"></div>';
+   + (noteSeen("inbox"), '<div style="height:20px"></div>');
 }
 function inboxRow(p){
   const miss = missingOf(p);

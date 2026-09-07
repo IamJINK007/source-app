@@ -190,6 +190,11 @@ Top-Lieferanten, Erfassung pro Tag, Preisspanne mit Median.
 
 ## Oberfläche
 
+Erklärtexte ziehen sich zurück: Was am ersten Tag hilft, steht am dritten nur
+im Weg. Nach drei Besuchen eines Bildschirms bleibt die Kurzfassung. Warnungen
+sind davon ausgenommen — die bleiben.
+
+
 Dunkel, fast monochrom, warm. Farbe trägt ausschließlich Bedeutung: Gold für
 Must Buy, Rosé für Favorit, Blaugrau für Vielleicht, Rot für Nein und für die
 Ampel. Alles andere ist Knochenweiß auf warmem Anthrazit. Keine Emojis, sondern
