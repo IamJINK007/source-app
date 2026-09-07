@@ -22,6 +22,7 @@
   --ink:#F3F1ED; --ink2:#A8A39C; --ink3:#7C776F;
   --gold:#C2A15B; --rose:#C58278; --sky:#7F9AAE; --red:#BE6A5E;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --kb:0px;   /* Höhe der eingeblendeten Tastatur, per JS gesetzt */
   --nav:58px;
   --e:cubic-bezier(.22,.72,.2,1);
   --d:260ms;
@@ -86,6 +87,7 @@ svg.ic .f{fill:currentColor;stroke:none}
 /* ---------- Bottom-Navigation ---------- */
 #nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav) + var(--sab));
   padding-bottom:var(--sab);background:rgba(10,10,9,.82);
+  transform:translateY(0);transition:transform 200ms var(--e);will-change:transform;
   -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
   border-top:1px solid var(--ln);display:grid;grid-template-columns:repeat(5,1fr);z-index:40}
 #nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
@@ -302,7 +304,7 @@ table.cmp td.win{color:var(--ink);font-weight:600}
 .empty p{font-size:14px;line-height:1.65;margin:0 0 6px;color:var(--ink2)}
 .empty p.q{font-size:12.5px;color:var(--ink3)}
 @keyframes toastin{from{opacity:0;transform:translate(-50%,10px) scale(.97)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
-.toast{position:fixed;left:50%;bottom:calc(var(--nav) + var(--sab) + 18px);
+.toast{position:fixed;left:50%;bottom:calc(var(--nav) + var(--sab) + var(--kb) + 18px);
   background:var(--s3);color:var(--ink);padding:12px 19px;border-radius:100px;font-size:13.5px;
   z-index:90;box-shadow:0 10px 34px rgba(0,0,0,.55);max-width:86vw;text-align:center;
   border:1px solid var(--ln2);letter-spacing:-.008em;animation:toastin 300ms var(--e) both}
@@ -373,7 +375,7 @@ table.cmp td.win{color:var(--ink);font-weight:600}
 .kpi b small{font-size:12px;color:var(--ink3);font-weight:400;margin-left:5px;letter-spacing:0}
 
 /* ---------- Mehrfachauswahl ---------- */
-.selbar{position:fixed;left:12px;right:12px;bottom:calc(var(--nav) + var(--sab) + 12px);z-index:45;
+.selbar{position:fixed;left:12px;right:12px;bottom:calc(var(--nav) + var(--sab) + var(--kb) + 12px);z-index:45;
   background:rgba(35,34,32,.94);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
   border:1px solid var(--ln2);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;
   box-shadow:0 12px 36px rgba(0,0,0,.55);animation:rise 280ms var(--e) both}
@@ -451,7 +453,7 @@ body.hassel #nav{opacity:.5}
 
 /* ---------- Sprachnotizen ---------- */
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-.rec{position:fixed;left:12px;right:12px;bottom:calc(var(--nav) + var(--sab) + 12px);z-index:70;
+.rec{position:fixed;left:12px;right:12px;bottom:calc(var(--nav) + var(--sab) + var(--kb) + 12px);z-index:70;
   background:rgba(35,34,32,.96);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
   border:1px solid var(--ln2);border-radius:14px;padding:13px 15px;display:flex;align-items:center;gap:13px;
   box-shadow:0 12px 36px rgba(0,0,0,.6);animation:rise 260ms var(--e) both}
@@ -548,7 +550,8 @@ body.hassel #nav{opacity:.5}
 .iconrow button.on[data-v="maybe"]{background:var(--sky);border-color:var(--sky)}
 .iconrow button.on[data-v="no"]{background:var(--red);border-color:var(--red)}
 
-.actbar{position:fixed;left:0;right:0;bottom:calc(var(--nav) + var(--sab));z-index:44;
+.actbar{position:fixed;left:0;right:0;bottom:calc(var(--nav) + var(--sab) + var(--kb));z-index:44;
+  transition:bottom 180ms var(--e);
   padding:11px 20px calc(11px);background:rgba(10,10,9,.9);
   -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
   border-top:1px solid var(--ln);display:flex;gap:9px}
@@ -606,6 +609,15 @@ table.cmp tr.same td:first-child{color:var(--ln2)}
 .bkstate svg.ic{color:#7FB89A}
 .bkstate.due{color:var(--gold)}
 .bkstate.due svg.ic{color:var(--gold)}
+
+/* Tastatur offen: Navigation verschwindet, die Aktionsleiste rueckt direkt
+   ueber die Tastatur. Sonst klebt sie auf iOS mitten im Bild. */
+body.kbopen #nav{transform:translateY(100%)}
+body.kbopen .actbar{bottom:var(--kb)}
+body.kbopen .toast{bottom:calc(var(--kb) + 18px)}
+/* Die fixierten Leisten duerfen nie an der Eintrittsanimation haengen —
+   ein transformierter Vorfahre macht aus position:fixed sonst position:absolute. */
+#app.enter>.actbar{animation:none}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
@@ -3171,6 +3183,8 @@ function render(){
 
   const bar = document.getElementById("selbar");
   if(bar) bar.remove();
+  const oldAct = document.getElementById("actbar");
+  if(oldAct) oldAct.remove();
   if(PHOTO_OBS) PHOTO_OBS.disconnect(), PHOTO_OBS = null;
   app.innerHTML = html;
   // Vollbilder gehoeren zur verlassenen Seite. Nur behalten, solange die
@@ -3179,7 +3193,9 @@ function render(){
   app.classList.remove("enter");
   void app.offsetWidth;
   app.classList.add("enter");
-  document.body.classList.toggle("hasact", !!app.querySelector(".actbar"));
+  const act = app.querySelector(".actbar");
+  if(act){ act.id = "actbar"; document.body.appendChild(act); }
+  document.body.classList.toggle("hasact", !!act);
   armLongPress(app);
   renderNav();
   hydratePhotos(app);
@@ -3188,6 +3204,28 @@ function render(){
 }
 
 /* ---------- Netz- und Update-Zustand ---------- */
+/* iOS verschiebt bei geoeffneter Tastatur nicht das Layout, sondern nur das
+   sichtbare Fenster. Ohne diese Korrektur landet eine unten fixierte Leiste
+   hinter der Tastatur oder klebt mitten im Bild. */
+function trackKeyboard(){
+  const vv = window.visualViewport;
+  if(!vv) return;
+  let raf = 0;
+  const apply = () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+      document.documentElement.style.setProperty("--kb", kb + "px");
+      document.body.classList.toggle("kbopen", kb > 80);
+    });
+  };
+  vv.addEventListener("resize", apply);
+  vv.addEventListener("scroll", apply);
+  window.addEventListener("orientationchange", () => setTimeout(apply, 300));
+  apply();
+}
+trackKeyboard();
+
 window.addEventListener("online",  () => { S.online = true;  render(); });
 window.addEventListener("offline", () => { S.online = false; render(); });
 </script>

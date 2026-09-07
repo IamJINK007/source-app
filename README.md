@@ -239,6 +239,17 @@ gestaffelt, der Navigationsindikator gleitet, Bilder blenden ein statt zu
 springen, die Summe zählt hoch. Alles hinter `prefers-reduced-motion`
 abgeschaltet.
 
+Die Navigation klebt am unteren Rand — auf jedem Bildschirm, beim Scrollen und
+während der Seitenanimation. Sie hängt an `<body>`, nicht am animierten
+Seitencontainer, denn ein transformierter Vorfahre macht aus `position:fixed`
+sonst `position:absolute` und die Leiste wandert mit nach oben. Die Höhe der
+Home-Anzeige kommt aus `safe-area-inset-bottom`.
+
+Kommt die Tastatur hoch, misst `visualViewport` ihre Höhe: Die Navigation
+fährt nach unten weg, die Aktionsleiste rückt direkt über die Tasten, statt
+wie sonst auf iOS mitten im Bild hängen zu bleiben. Beim Schließen fährt
+alles zurück.
+
 ## Technik
 
 ```
@@ -264,8 +275,6 @@ Updates meldet die App über den Service Worker und lädt erst nach Bestätigung
 neu — nicht mitten in der Erfassung.
 
 ## Auf dem iPhone installieren
-
-Live unter **https://iamjink007.github.io/source-app/**
 
 Die App braucht eine echte `https://`-Adresse — über `file://` funktionieren
 weder IndexedDB noch der Service Worker.
