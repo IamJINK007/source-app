@@ -143,6 +143,33 @@ Dazu **Modellnummer** (chinesische Lieferanten referenzieren fast alles über
 `HT-8827` statt über den Namen) und ein Feld für **Ausführungen und Farben**.
 Beides landet in der Suche, im Anfrage-Sheet und im Bericht.
 
+## Nachfassen nach der Messe
+
+Die Messe endet Freitag, dann fängt die Arbeit an. Diese Ansicht sortiert alle
+Lieferanten nach ihrem Stand im Prozess:
+
+| Gruppe | Was drinsteht |
+|---|---|
+| **Noch nicht angefragt** | Lieferanten mit Must Buy oder Favorit, an die keine Anfrage raus ist |
+| **Wartet auf Antwort** | Anfrage gesendet, mit Tagen seit dem Versand. Ab fünf Tagen wird die Karte markiert |
+| **Angebot erhalten** | Antwort da — vergleichen, Muster bestellen, verhandeln |
+| **Bestellt** | erledigt |
+
+Der Zähler startet, sobald du das Anfrage-Sheet teilst; hast du anderweitig
+geschrieben, vermerkst du es mit einem Tap. Je Karte: nachfassen, Antwort
+vermerken oder erneut anfragen. Überfällige Anfragen erscheinen als Zahl auf
+der Startseite.
+
+## Preis-Einordnung
+
+Nach zwei Messetagen kennt die App zwölf Sofas. Ab vier vergleichbaren Funden
+zeigt jede Produktseite, wo dieses eine steht: eine Verteilung mit Median,
+dazu **„Liegt im teuersten Viertel — teurer als 5 von 5 vergleichbaren Sofas."**
+
+Darunter der **Preis je m³** gegen den Median der Gruppe. Bei Möbeln entscheidet
+das Volumen über die Fracht, und ein günstiges Sofa, das doppelt so viel Platz
+frisst, ist am Ende teurer. Das ist die Zahl, die sonst niemand am Stand hat.
+
 ## Messebericht
 
 Alles mit Must Buy oder Favorit, nach Lieferant gruppiert, mit Fotos, Preisen,

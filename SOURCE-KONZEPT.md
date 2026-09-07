@@ -455,6 +455,11 @@ Modellnummer, Ausführungen und Prozess-Status · druckbarer Messebericht ·
 Erststart-Assistent · Löschen mit Rückgängig · Offline- und Update-Hinweis ·
 Backup-Erinnerung am Abend
 
+**V2.1 · gebaut**
+Preisschild aus der Zwischenablage lesen (Live Text) · Backup zusammenführen
+statt nur ersetzen · Nachfassen nach der Messe entlang des Prozessstands ·
+Preis-Einordnung gegen die eigenen Funde, auch je m³
+
 **V3 · offen, nach der Messe zu entscheiden**
 Native App (React Native + Expo + SQLite) · Apple Vision OCR für Preisschilder
 und Visitenkarten · QR-Scan · Übersetzung Chinesisch → Deutsch ·

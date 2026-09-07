@@ -2117,6 +2117,9 @@ function viewProduct(id){
     h += '</div>';
   }
 
+  /* ---- Einordnung gegen die eigenen Funde ---- */
+  h += rankBlock(p);
+
   /* ---- Bewertung ---- */
   if(sc != null || Object.keys(p.rate||{}).length){
     const w = S.cfg.weights;
@@ -2750,11 +2753,22 @@ function viewRfq(sid){
   const items = productsOf(sid);
   if(!items.length) return hdr("Anfrage",{back:true}) + empty("file","Für diesen Lieferanten ist nichts erfasst.");
 
+  const sent = daysSince(sup.rfqSentAt);
   let h = hdr("Anfrage", {back:true});
-  h += '<div class="pad" style="display:flex;gap:9px;margin-bottom:22px">'
+  h += '<div class="pad" style="display:flex;gap:9px;margin-bottom:14px">'
     + '<button class="btn pri" onclick="shareRfq(\'' + sid + '\')">' + ic("arrow","s") + 'Teilen</button>'
     + '<button class="btn" onclick="window.print()">' + ic("file","s") + 'Drucken</button>'
     + '<button class="btn sm" onclick="copyRfq(\'' + sid + '\')">' + ic("card","s") + '</button>'
+    + '</div>'
+    + '<div class="pad" style="margin-bottom:20px">'
+      + (sup.rfqSentAt
+         ? '<div class="bkstate' + (sent >= 5 && !sup.repliedAt ? " due" : "") + '" style="margin:0;justify-content:flex-start">'
+           + ic(sup.repliedAt ? "check" : "alert","s")
+           + '<span>' + (sup.repliedAt ? "Antwort erhalten"
+               : "Vor " + sent + (sent === 1 ? " Tag" : " Tagen") + " gesendet"
+                 + (sent >= 5 ? " — Zeit zum Nachfassen" : "")) + '</span></div>'
+         : '<button class="btn" style="width:100%" onclick="markSent(\'' + sid + '\')">'
+           + ic("check","s") + 'Anderweitig gesendet — vermerken</button>')
     + '</div>';
   h += '<div class="pad rfq">'
     + '<div style="font-size:19px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px">' + esc(sup.name) + '</div>'
@@ -2785,10 +2799,14 @@ async function shareRfq(sid){
   const sup = S.suppliers.find(x => x.id === sid);
   const txt = rfqText(sup, productsOf(sid));
   if(navigator.share){
-    try{ await navigator.share({ title:"Inquiry — " + sup.name, text:txt }); return; }
-    catch(e){ if(e && e.name === "AbortError") return; }
+    try{
+      await navigator.share({ title:"Inquiry — " + sup.name, text:txt });
+      await markSent(sid);            // ab jetzt läuft die Uhr im Nachfassen
+      return;
+    }catch(e){ if(e && e.name === "AbortError") return; }
   }
-  copyRfq(sid);
+  await copyRfq(sid);
+  await markSent(sid);
 }
 async function copyRfq(sid){
   const sup = S.suppliers.find(x => x.id === sid);
@@ -2935,6 +2953,10 @@ function viewHome(){
     + dtile("box","Container", plan ? plan + " Positionen · " + nf(vol,1) + " m³" : "leer", "#/container")
     + dtile("map","Hallen", halls.size + (halls.size === 1 ? " Halle" : " Hallen"), "#/halls")
     + dtile("table","Statistik", ps.length + " Produkte", "#/stats")
+    + (S.suppliers.some(x => followState(x) && ["todo","wait","reply"].indexOf(followState(x).k) >= 0)
+       ? dtile("message","Nachfassen",
+           (overdueCount() ? overdueCount() + " überfällig" : "offene Anfragen"), "#/followup")
+       : "")
     + (inbox ? dtile("inbox","Inbox", inbox + " unbearbeitet", "#/inbox") : "")
     + (S.sel.size ? dtile("scales","Vergleich", S.sel.size + " ausgewählt", "#/compare") : "")
     + '</div>';
@@ -2984,6 +3006,7 @@ function viewMore(){
      + row("box","Container-Planer","#/container", plan || "")
      + row("map","Hallen","#/halls","")
      + row("table","Statistik","#/stats","")
+     + row("message","Nachfassen","#/followup", overdueCount() || "")
      + row("file","Messebericht","#/report","")
      + row("flag","Messe","#/fair", fair() ? fair().name : "keine")
      + row("download","Backup & Export","#/backup","")
@@ -3139,6 +3162,7 @@ function render(){
   else if(seg[1] === "container")      html = viewContainer();
   else if(seg[1] === "stats")          html = viewStats();
   else if(seg[1] === "report")         html = viewReport();
+  else if(seg[1] === "followup")       html = viewFollowup();
   else if(seg[1] === "more")           html = viewMore();
   else if(seg[1] === "fair")           html = viewFair();
   else if(seg[1] === "settings")       html = viewSettings();
@@ -4278,6 +4302,212 @@ function impPick(){
     try{ await doImport(f); }catch(e){ toast("Import fehlgeschlagen: " + e.message); }
   };
   inp.click();
+}
+</script>
+
+
+<script>
+"use strict";
+/* ============================================================
+   AUSBAU J — Nachfassen nach der Messe, Preis-Einordnung
+   ============================================================ */
+
+(function(){
+  const st = document.createElement("style");
+  st.textContent = [
+    ".fu{margin:0 20px 10px;background:var(--s1);border:1px solid var(--ln);border-radius:13px;overflow:hidden}",
+    ".fu .fh{display:flex;align-items:center;gap:12px;padding:14px 15px}",
+    ".fu .fh .ft{flex:1;min-width:0}",
+    ".fu .fh .ft b{display:block;font-size:14px;font-weight:500;letter-spacing:-.01em;",
+    "  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+    ".fu .fh .ft small{display:block;color:var(--ink3);font-size:11.5px;margin-top:3px;letter-spacing:0}",
+    ".fu .days{flex:none;font-variant-numeric:tabular-nums;font-size:13px;color:var(--ink2);text-align:right}",
+    ".fu .days em{display:block;font-style:normal;font-size:10px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase}",
+    ".fu.late .days{color:var(--gold)}",
+    ".fu.late{border-color:rgba(194,161,91,.3)}",
+    ".fu .fa{display:flex;gap:8px;padding:0 15px 14px}",
+    /* Preis-Einordnung */
+    ".rankbar{position:relative;height:26px;margin:14px 0 8px}",
+    ".rankbar .ln{position:absolute;left:0;right:0;top:12px;height:2px;background:var(--ln2);border-radius:2px}",
+    ".rankbar .dot{position:absolute;top:6px;width:14px;height:14px;border-radius:50%;background:var(--ink);",
+    "  transform:translateX(-7px);box-shadow:0 0 0 4px var(--bg)}",
+    ".rankbar .med{position:absolute;top:5px;width:1.5px;height:16px;background:var(--ink3);transform:translateX(-1px)}",
+    ".rankbar .pip{position:absolute;top:10px;width:5px;height:5px;border-radius:50%;background:var(--ln2);transform:translateX(-2.5px)}",
+    ".rankscale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink3);",
+    "  font-variant-numeric:tabular-nums;letter-spacing:0}",
+    ".verdictline{font-size:14px;line-height:1.55;color:var(--ink2);margin-top:12px}",
+    ".verdictline b{color:var(--ink);font-weight:600}"
+  ].join("\n");
+  document.head.appendChild(st);
+})();
+
+/* ---------- Nachfassen ----------
+   Die Messe endet Freitag, danach faengt die Arbeit an. Wer wurde angefragt,
+   wer hat geantwortet, wo haengt es. */
+const DAY = 86400000;
+function daysSince(ts){ return ts ? Math.floor((Date.now() - ts) / DAY) : null; }
+
+function followState(sup){
+  const ps = productsOf(sup.id);
+  if(!ps.length) return null;
+  const relevant = ps.filter(p => p.status === "must" || p.status === "fav");
+  if(ps.some(p => p.stage === "ordered")) return { k:"done", rank:4, t:"Bestellt" };
+  if(sup.repliedAt || ps.some(p => p.stage === "quoted"))
+    return { k:"reply", rank:2, t:"Angebot erhalten", since: sup.repliedAt };
+  if(sup.rfqSentAt)
+    return { k:"wait", rank:1, t:"Wartet auf Antwort", since: sup.rfqSentAt };
+  if(relevant.length) return { k:"todo", rank:0, t:"Noch nicht angefragt" };
+  return { k:"idle", rank:3, t:"Nur angesehen" };
+}
+const FU_GROUPS = [
+  { k:"todo",  t:"Noch nicht angefragt", hint:"Lieferanten mit Must Buy oder Favorit, an die noch keine Anfrage raus ist." },
+  { k:"wait",  t:"Wartet auf Antwort",   hint:"Anfrage ist draußen. Nach fünf Tagen ohne Antwort lohnt ein Nachfassen." },
+  { k:"reply", t:"Angebot erhalten",     hint:"Jetzt vergleichen, Muster bestellen oder verhandeln." },
+  { k:"done",  t:"Bestellt",             hint:"" }
+];
+
+function viewFollowup(){
+  const sups = S.suppliers.filter(s => productsOf(s.id).length);
+  const withState = sups.map(s => ({ s, st: followState(s) })).filter(x => x.st && x.st.k !== "idle");
+  if(!withState.length)
+    return hdr("Nachfassen",{back:true})
+      + empty("file","Noch nichts zum Nachfassen.",
+              "Sobald du Lieferanten mit Must Buy oder Favorit hast, stehen sie hier.");
+
+  let h = hdr("Nachfassen", {back:true});
+  const pr = primer("followup",
+    "Die Messe endet, dann fängt die Arbeit an. Hier steht, an wen eine Anfrage raus ist, "
+    + "wer geantwortet hat und wo es hängt.",
+    "");
+  if(pr) h += '<div class="note-w">' + pr + '</div>';
+
+  FU_GROUPS.forEach(g => {
+    const items = withState.filter(x => x.st.k === g.k);
+    if(!items.length) return;
+    items.sort((a,b) => (a.st.since || 0) - (b.st.since || 0));
+    h += '<div class="lbl-sec pad">' + g.t + ' · ' + items.length + '</div>';
+    if(g.hint && seenCount("followup") < 3)
+      h += '<div class="help pad" style="margin:-4px 0 10px">' + g.hint + '</div>';
+    items.forEach(({s, st}) => {
+      const d = daysSince(st.since);
+      const late = g.k === "wait" && d != null && d >= 5;
+      const ps = productsOf(s.id);
+      const must = ps.filter(p => p.status === "must").length;
+      h += '<div class="fu' + (late ? " late" : "") + '">'
+        + '<div class="fh">' + ic("building")
+          + '<span class="ft"><b>' + esc(s.name) + '</b><small>'
+            + esc([s.hall && "Hall " + s.hall, s.booth].filter(Boolean).join(" · ") || "kein Stand")
+            + ' · ' + ps.length + (ps.length === 1 ? " Produkt" : " Produkte")
+            + (must ? " · " + must + " Must Buy" : "") + '</small></span>'
+          + (d != null
+             ? '<span class="days">' + d + '<em>' + (d === 1 ? "Tag" : "Tage") + '</em></span>'
+             : "")
+        + '</div>'
+        + '<div class="fa">'
+          + (g.k === "todo"
+             ? '<a class="btn pri" href="#/rfq/' + s.id + '">' + ic("file","s") + 'Anfrage</a>'
+             : "")
+          + (g.k === "wait"
+             ? '<button class="btn' + (late ? " pri" : "") + '" onclick="shareRfq(\'' + s.id + '\')">'
+               + ic("arrow","s") + 'Nachfassen</button>'
+               + '<button class="btn" onclick="markReplied(\'' + s.id + '\')">' + ic("check","s") + 'Antwort da</button>'
+             : "")
+          + (g.k === "reply"
+             ? '<a class="btn" href="#/s/' + s.id + '">' + ic("building","s") + 'Lieferant</a>'
+               + '<button class="btn" onclick="markSent(\'' + s.id + '\',1)">' + ic("arrow","s") + 'Erneut anfragen</button>'
+             : "")
+          + (g.k === "done" ? '<a class="btn" href="#/s/' + s.id + '">' + ic("building","s") + 'Lieferant</a>' : "")
+        + '</div></div>';
+    });
+  });
+  noteSeen("followup");
+  return h + '<div style="height:20px"></div>';
+}
+async function markSent(id, reset){
+  const s = S.suppliers.find(x => x.id === id); if(!s) return;
+  s.rfqSentAt = Date.now();
+  if(reset) s.repliedAt = null;
+  s.updatedAt = Date.now();
+  await DB.put("suppliers", s);
+  toast("Als angefragt vermerkt");
+  render();
+}
+async function markReplied(id){
+  const s = S.suppliers.find(x => x.id === id); if(!s) return;
+  s.repliedAt = Date.now();
+  s.updatedAt = Date.now();
+  await DB.put("suppliers", s);
+  toast("Antwort vermerkt");
+  render();
+}
+/* Wie viele Lieferanten warten schon zu lange? */
+function overdueCount(){
+  return S.suppliers.filter(s => {
+    const st = followState(s);
+    return st && st.k === "wait" && daysSince(st.since) >= 5;
+  }).length;
+}
+
+/* ---------- Preis-Einordnung ----------
+   Nach zwei Tagen kennt die App zwölf Sofas. Dann kann sie sagen, wo dieses
+   eine steht — eine Zahl, die sonst niemand am Stand hat. */
+function peers(p){
+  if(!p.category) return [];
+  return fairProducts().filter(o =>
+    o.category === p.category && priceIn(o, "EUR") != null);
+}
+function ranking(p){
+  const mine = priceIn(p, "EUR");
+  if(mine == null) return null;
+  const group = peers(p);
+  if(group.length < 4) return null;
+  const vals = group.map(o => priceIn(o, "EUR")).sort((a,b) => a - b);
+  const below = vals.filter(v => v < mine).length;
+  const pct = Math.round(below / (vals.length - 1) * 100);
+  const cheaper = below;
+  const median = vals[Math.floor(vals.length / 2)];
+  const out = { n:vals.length, min:vals[0], max:vals[vals.length-1], median, mine, pct, cheaper, vals };
+
+  /* Bei Möbeln ist der Preis je Kubikmeter die ehrlichere Zahl. */
+  const withVol = group.filter(o => itemCbm(o));
+  const v = itemCbm(p);
+  if(v && withVol.length >= 4){
+    const per = withVol.map(o => priceIn(o,"EUR") / itemCbm(o)).sort((a,b) => a - b);
+    out.perCbm = { mine: mine / v, median: per[Math.floor(per.length/2)], n: per.length };
+  }
+  return out;
+}
+function rankBlock(p){
+  const r = ranking(p);
+  if(!r) return "";
+  const span = Math.max(1, r.max - r.min);
+  const pos = v => Math.max(0, Math.min(100, (v - r.min) / span * 100));
+  const quart = r.pct >= 75 ? "im teuersten Viertel"
+              : r.pct >= 50 ? "über dem Median"
+              : r.pct >= 25 ? "unter dem Median"
+              :               "im günstigsten Viertel";
+  return '<div class="sec"><h3>Einordnung unter ' + r.n + ' × ' + esc(p.category) + '</h3>'
+    + '<div class="rankbar"><span class="ln"></span>'
+      + r.vals.map(v => '<span class="pip" style="left:' + pos(v) + '%"></span>').join("")
+      + '<span class="med" style="left:' + pos(r.median) + '%"></span>'
+      + '<span class="dot" style="left:' + pos(r.mine) + '%"></span>'
+    + '</div>'
+    + '<div class="rankscale"><span>' + money(r.min,"EUR") + '</span>'
+      + '<span>Median ' + money(r.median,"EUR") + '</span>'
+      + '<span>' + money(r.max,"EUR") + '</span></div>'
+    + '<div class="verdictline">Liegt <b>' + quart + '</b> — teurer als '
+      + r.cheaper + ' von ' + (r.n - 1) + ' vergleichbaren '
+      + esc(p.category) + '.</div>'
+    + (r.perCbm
+       ? '<div class="calc" style="margin-top:14px">'
+         + '<div class="r"><span>Preis je m³</span><b>' + money(r.perCbm.mine,"EUR") + '</b></div>'
+         + '<div class="r"><span>Median je m³<em>' + r.perCbm.n + ' mit Maßen</em></span><b>'
+           + money(r.perCbm.median,"EUR") + '</b></div>'
+         + '</div>'
+         + '<div class="help">Bei Möbeln entscheidet das Volumen über die Fracht. Der Preis je m³ '
+         + 'vergleicht ehrlicher als der Stückpreis.</div>'
+       : "")
+    + '</div>';
 }
 </script>
 
