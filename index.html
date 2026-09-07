@@ -56,8 +56,9 @@ svg.ic.xl{width:34px;height:34px;stroke-width:1}
 svg.ic .f{fill:currentColor;stroke:none}
 
 /* ---------- Rahmen ---------- */
-#app{min-height:100%;padding:calc(var(--sat) + 4px) var(--sar) calc(var(--nav) + var(--sab) + 20px) var(--sal)}
+#app{overflow-wrap:anywhere;min-height:100%;padding:calc(var(--sat) + 4px) var(--sar) calc(var(--nav) + var(--sab) + 20px) var(--sal)}
 .pad{padding:0 20px}
+.num,.bigprice,input,textarea,select,.sprow .v,.conv,.rateline{overflow-wrap:normal}
 @keyframes rise{from{opacity:0;transform:translate3d(0,7px,0)}to{opacity:1;transform:none}}
 #app.enter>*{animation:rise var(--d) var(--e) both}
 #app.enter>*:nth-child(2){animation-delay:35ms}
@@ -90,7 +91,7 @@ svg.ic .f{fill:currentColor;stroke:none}
   padding:0 var(--sar) var(--sab) var(--sal);background:rgba(10,10,9,.82);
   transform:translateY(0);transition:transform 200ms var(--e);will-change:transform;
   -webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
-  border-top:1px solid var(--ln);display:grid;grid-template-columns:repeat(5,1fr);z-index:40}
+  border-top:1px solid var(--ln);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));z-index:40}
 #nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   color:var(--ink3);font-size:9.5px;letter-spacing:.02em;height:var(--nav);position:relative;
   transition:color 200ms var(--e)}
@@ -131,7 +132,7 @@ svg.ic .f{fill:currentColor;stroke:none}
 .lbl-sec{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);margin:34px 0 10px}
 
 /* ---------- Produktraster ---------- */
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;padding:2px 20px 0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;padding:2px 20px 0}
 .card{position:relative;transition:transform 160ms var(--e)}
 .card:active{transform:scale(.984)}
 .card .phw{position:relative;border-radius:11px;overflow:hidden;background:var(--s2);aspect-ratio:1/1;display:block}
@@ -157,7 +158,8 @@ svg.ic .f{fill:currentColor;stroke:none}
 .filters{display:flex;gap:7px;overflow-x:auto;padding:0 20px 16px;-webkit-overflow-scrolling:touch;
   scrollbar-width:none}
 .filters::-webkit-scrollbar{display:none}
-.fchip{flex:none;background:transparent;border:1px solid var(--ln2);border-radius:100px;
+.fchip{flex:none;max-width:78vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  background:transparent;border:1px solid var(--ln2);border-radius:100px;
   padding:7px 14px;font-size:12.5px;color:var(--ink2);white-space:nowrap;letter-spacing:-.005em;
   display:flex;align-items:center;gap:6px;
   transition:background 180ms var(--e),color 180ms var(--e),border-color 180ms var(--e)}
@@ -184,15 +186,15 @@ select.inp{appearance:none;
   background-image:linear-gradient(45deg,transparent 50%,var(--ink3) 50%),linear-gradient(135deg,var(--ink3) 50%,transparent 50%);
   background-position:calc(100% - 19px) 21px,calc(100% - 14px) 21px;
   background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:38px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
 .chipset{display:flex;flex-wrap:wrap;gap:7px}
 .chipset button{background:transparent;border:1px solid var(--ln2);border-radius:9px;
   padding:9px 13px;font-size:13.5px;color:var(--ink2);letter-spacing:-.006em;
   display:flex;align-items:center;gap:7px;
   transition:background 180ms var(--e),color 180ms var(--e),border-color 180ms var(--e),transform 140ms var(--e)}
 .chipset button:active{transform:scale(.97)}
-.chipset.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chipset.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .chipset.grid2 button{justify-content:center}
 .chipset.grid2 button:nth-child(3):last-child{grid-column:1/-1}
 .grouplbl{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);
@@ -300,8 +302,9 @@ img.phload{opacity:1;transition:opacity 420ms var(--e)}
 .bar .vv{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
 .sec{background:var(--s1);border:1px solid var(--ln);border-radius:14px;padding:17px;margin:0 20px 14px}
 .sec h3{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);margin:0 0 14px;font-weight:500}
-.tagrow{display:flex;flex-wrap:wrap;gap:7px}
-.tag{border:1px solid var(--ln2);border-radius:100px;padding:5px 11px;font-size:11.5px;color:var(--ink2);letter-spacing:0}
+.tagrow{display:flex;flex-wrap:wrap;gap:7px;min-width:0}
+.tag{border:1px solid var(--ln2);border-radius:100px;padding:5px 11px;font-size:11.5px;
+  color:var(--ink2);letter-spacing:0;max-width:100%;overflow-wrap:anywhere}
 .statline{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:13px 0;
   border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);margin:0 0 20px}
 .statline .dot{width:7px;height:7px;border-radius:50%;flex:none}
@@ -411,7 +414,8 @@ table.cmp td.win{color:var(--ink);font-weight:600}
 .ratebox .score.gap .o{font-size:13.5px;color:var(--ink3)}
 .ratebox:active,.notebox:active{opacity:.62}
 .notebox{display:flex;align-items:flex-start;gap:12px}
-.notebox .tx{flex:1;font-size:14px;line-height:1.6;white-space:pre-wrap}
+.notebox .tx{flex:1;min-width:0;font-size:14px;line-height:1.6;white-space:pre-wrap;
+  overflow-wrap:anywhere}
 .notebox.gap .tx{color:var(--ink3);font-size:13px}
 .notebox .chev{margin-top:3px}
 .gapbtn{display:grid;grid-template-columns:auto 1fr;gap:4px 11px;width:100%;text-align:left;font:inherit;
@@ -472,7 +476,7 @@ table.cmp td.win{color:var(--ink);font-weight:600}
 .fill .tick{position:absolute;top:0;bottom:0;width:1px;background:var(--ln2)}
 .fill .lg{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--ink3);
   font-variant-numeric:tabular-nums}
-.kpis{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;margin-top:6px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px;margin-top:6px}
 .kpi{padding:13px 0;border-bottom:1px solid var(--ln)}
 .kpi span{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px}
 .kpi b{font-size:17px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -517,7 +521,7 @@ body.hassel #nav{opacity:.5}
 .phcell{position:relative;flex:none}
 
 /* ---------- Statistik ---------- */
-.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+.statgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
 .statgrid .kpi:nth-last-child(-n+2){border-bottom:none}
 .blist{margin-top:6px}
 .brow{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:11px 0;border-bottom:1px solid var(--ln);
@@ -544,6 +548,7 @@ body.hassel #nav{opacity:.5}
 .banner svg.ic{color:var(--gold);flex:none}
 .banner button{margin-left:auto;flex:none;color:var(--ink);font-size:12.5px;font-weight:500;
   border:1px solid var(--ln2);border-radius:8px;padding:7px 11px;white-space:nowrap}
+.banner.warn{border-color:rgba(198,164,94,.34);background:rgba(198,164,94,.06)}
 
 /* ---------- Gruppenüberschrift in der Liste ---------- */
 .ghead{grid-column:1/-1;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);
@@ -586,7 +591,7 @@ body.hassel #nav{opacity:.5}
 .ctx .who{font-size:15px;font-weight:600;letter-spacing:.3em;color:var(--ink)}
 .ctx .when{font-size:11.5px;color:var(--ink3);letter-spacing:0;text-align:right;line-height:1.5}
 
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
 .tile{background:var(--s1);border:1px solid var(--ln);border-radius:12px;padding:12px 8px 11px;
   display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--ink);
   transition:transform 150ms var(--e),border-color 180ms var(--e)}
@@ -598,7 +603,7 @@ body.hassel #nav{opacity:.5}
 .tile.hot svg.ic{color:var(--gold)}
 .tile.zero b{color:var(--ink3)}
 
-.duo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
 .dtile{background:var(--s1);border:1px solid var(--ln);border-radius:12px;padding:14px;
   display:flex;align-items:center;gap:11px;color:var(--ink);
   transition:transform 150ms var(--e)}
@@ -639,7 +644,7 @@ body.hassel #nav{opacity:.5}
 .shot .cnt{position:absolute;right:10px;bottom:10px;background:rgba(10,10,9,.62);
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border-radius:100px;padding:4px 11px;font-size:11px;color:var(--ink);letter-spacing:.02em}
-.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.roles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
 .roles button{background:var(--s1);border:1px solid var(--ln);border-radius:11px;padding:11px 4px;
   display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--ink2);font-size:10px;
   letter-spacing:.02em;transition:transform 140ms var(--e),color 160ms var(--e)}
@@ -773,7 +778,7 @@ body.kbopen .toast{bottom:calc(var(--kb) + 18px)}
   .gal .galadd{flex:1 0 22%;width:auto;aspect-ratio:auto;height:38vh;font-size:11px}
   .gal .count{bottom:8px;right:10px}
   .galempty{height:58px}
-  .grid{grid-template-columns:repeat(4,1fr)}
+  .grid{grid-template-columns:repeat(4,minmax(0,1fr))}
   .card .phw{aspect-ratio:4/3}
   .sheetbx{max-height:94vh;padding-top:8px}
   .sheetbx .grab{margin-bottom:12px}
@@ -1015,6 +1020,7 @@ const S = {
   selMode:false,           // Auswahlmodus der Produktliste (Langdruck oder Kopfzeile)
   seen:null,               // Platzhalter, der eigentliche Zähler liegt in den Einstellungen
   compare:new Set(),
+  storagePct:null, storageMB:0,   // Fuellstand, damit rechtzeitig gewarnt wird
   filter:{q:"", status:"", cat:"", supplier:"", hall:"", tag:"", stage:""},
   draft:null                // laufende Erfassung
 };
@@ -1052,9 +1058,20 @@ const saveCfg = ()=> DB.put("settings", S.cfg);
    imageOrientation:"from-image" ist Pflicht: ohne das ignoriert
    createImageBitmap die EXIF-Drehung und hochkant fotografierte Moebel
    liegen quer. Der <img>-Weg dreht von sich aus richtig. */
+/* Aus einem technischen Fehler wird ein Satz, der sagt, was zu tun ist. */
+function humanError(e){
+  /* Name und Text zusammen pruefen — bei einem Error ist der Name immer
+     gesetzt ("Error"), der Grund steht aber im Text. */
+  const m = e ? [e.name, e.message].filter(Boolean).join(" ") || String(e) : "";
+  if(/quota|QuotaExceeded|storage/i.test(m)) return "Speicher voll — erst sichern und aufräumen";
+  if(/nicht lesbar|decode|NotReadable|Image/i.test(m)) return "Bild nicht lesbar";
+  return null;
+}
 async function decodeImage(file){
-  const bmp = await createImageBitmap(file, {imageOrientation:"from-image"}).catch(()=>null);
-  if(bmp) return bmp;
+  if(typeof createImageBitmap === "function"){
+    const bmp = await createImageBitmap(file, {imageOrientation:"from-image"}).catch(()=>null);
+    if(bmp) return bmp;
+  }
   return new Promise((res,rej)=>{
     const img = new Image(), u = URL.createObjectURL(file);
     img.onload = ()=>{ URL.revokeObjectURL(u); res(img); };
@@ -1939,6 +1956,21 @@ function expCsv(){
            "SOURCE-Produkte-" + dstamp().slice(0,10) + ".csv");
   toast("CSV exportiert");
 }
+/* Der Speicher laeuft schleichend voll: dreihundert Produkte mit je zwei
+   Fotos sind achtzig Megabyte. Wer das erst merkt, wenn nichts mehr
+   gesichert wird, hat einen Messetag verloren. */
+async function checkStorage(){
+  try{
+    if(!navigator.storage || !navigator.storage.estimate) return;
+    const est = await navigator.storage.estimate();
+    if(!est.quota) return;
+    const pct = est.usage / est.quota;
+    const was = S.storagePct;
+    S.storagePct = pct;
+    S.storageMB = Math.round(est.usage / 1048576);
+    if(pct >= 0.8 && (was == null || was < 0.8)) render();
+  }catch(e){ /* ohne Angabe eben ohne Warnung */ }
+}
 async function showStorage(){
   const el = document.getElementById("storage");
   if(!el) return;
@@ -2225,7 +2257,7 @@ function pickPhoto(camera, role){
     toast(files.length > 1 ? files.length + " Fotos werden verarbeitet…" : "Foto wird verarbeitet…", 1200);
     for(const f of files){
       try{ S.draft.photoIds.push(await addPhoto(f, role)); }
-      catch(e){ toast("Ein Foto konnte nicht gelesen werden"); }
+      catch(e){ toast(humanError(e) || "Ein Foto konnte nicht gelesen werden"); }
     }
     render();
   };
@@ -2240,7 +2272,13 @@ async function addPhotoTo(id, role){
     const files = Array.from(inp.files||[]); inp.remove();
     if(!files.length) return;
     toast("Wird verarbeitet…", 1200);
-    for(const f of files){ try{ p.photoIds.push(await addPhoto(f, role)); }catch(e){} }
+    let failed = 0, why = null;
+    for(const f of files){
+      try{ p.photoIds.push(await addPhoto(f, role)); }
+      catch(e){ failed++; why = humanError(e) || why; }
+    }
+    if(failed) toast(why || (failed === 1 ? "Ein Foto konnte nicht gelesen werden"
+                                          : failed + " Fotos konnten nicht gelesen werden"));
     await DB.put("products", p);
     render();
   };
@@ -3260,6 +3298,12 @@ function banners(){
     h += '<div class="banner">' + ic("alert","s") + '<span>'
        + (S.cfg.ratesTs ? "Wechselkurs ist " + ago(S.cfg.ratesTs) + " alt." : "Wechselkurs noch nie geholt.")
        + '</span><button onclick="go(\'/settings\')">Kurs</button></div>';
+  if(S.storagePct != null && S.storagePct >= 0.8)
+    h += '<div class="banner warn">' + ic("alert","s") + '<span><b>Speicher zu '
+       + Math.round(S.storagePct * 100) + ' % voll'
+       + (S.storageMB ? ' (' + S.storageMB + ' MB)' : "") + '.</b> '
+       + 'Erst sichern, dann Fotos ausdünnen — sonst nimmt die App irgendwann '
+       + 'nichts mehr an.</span><button onclick="go(\'/backup\')">Sichern</button></div>';
   const ps = fairProducts();
   const needBackup = ps.length >= 5 && (!S.cfg.lastBackup || Date.now() - S.cfg.lastBackup > 20*3600*1000);
   if(needBackup && new Date().getHours() >= 17)
@@ -3725,7 +3769,7 @@ function supPhoto(id, kind){
       s[kind === "card" ? "cardPhotoId" : "boothPhotoId"] = pid;
       await DB.put("suppliers", s);
       render();
-    }catch(e){ toast("Foto konnte nicht gelesen werden"); }
+    }catch(e){ toast(humanError(e) || "Foto konnte nicht gelesen werden"); }
   };
   inp.click();
 }
@@ -3761,6 +3805,11 @@ async function openSupPhoto(id, kind){
   render();
 
   if(!S.cfg.onboarded && !S.fairs.length) setTimeout(onboard, 450);
+
+  /* Fuellstand beim Start und danach alle zehn Minuten. */
+  checkStorage();
+  setInterval(checkStorage, 600000);
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) checkStorage(); });
 
   if(navigator.onLine && !S.cfg.ratesManual &&
      (!S.cfg.ratesTs || Date.now() - S.cfg.ratesTs > 12*3600*1000)){
@@ -4908,6 +4957,19 @@ function fsScore(){
   if(out) out.textContent = tot > 0 ? "Gesamt " + nf(tot,1) + " / 10" : "Gesamt –";
 }
 function fsNum(v){ const n = parseFloat(String(v == null ? "" : v).replace(",",".")); return isNaN(n) ? null : n; }
+function checkTriple(d, k){
+  let leer = 0;
+  for(const a of ["l","w","h"]){
+    const raw = d[k + "." + a];
+    if(raw === "" || raw == null){ leer++; continue; }
+    const n = fsNum(raw);
+    if(n == null) return "„" + raw + "“ ist keine Zahl.";
+    if(n <= 0) return "Maße müssen größer als null sein.";
+    if(n > 2000) return "Über 20 Meter? Die Maße sind in Zentimetern.";
+  }
+  if(leer > 0 && leer < 3) return "Alle drei Maße oder keins — sonst gibt es kein Volumen.";
+  return null;
+}
 function fsTripleApply(p, k, d){
   const o = {};
   for(const a of ["l","w","h"]){ const n = fsNum(d[k + "." + a]); if(n != null) o[a] = n; }
@@ -4921,6 +4983,10 @@ const FIELDS = {
     apply: (p,d) => { p.title = d.title; } },
 
   price: { label:"Preis", gapText:"Preis",
+    check: d => { const n = fsNum(d.amount);
+      if(d.amount !== "" && n == null) return "Das ist keine Zahl.";
+      if(n != null && n < 0) return "Ein Preis kann nicht negativ sein.";
+      return null; },
     form: p => '<div class="two"><div class="field"><label>Betrag</label>'
       + fsText("amount", p.price && p.price.amount != null ? p.price.amount : "", "3980", "decimal")
       + '</div><div class="field"><label>Währung</label>'
@@ -4979,12 +5045,12 @@ const FIELDS = {
     form: p => fsText("variants", p.variants, "Beige, Anthrazit, Eiche natur"),
     apply: (p,d) => { p.variants = d.variants; } },
 
-  dims: { label:"Produktmaße", gapText:"Produktmaß",
+  dims: { label:"Produktmaße", gapText:"Produktmaß", check: d => checkTriple(d,"dims"),
     form: p => fsTriple("dims", p.dims),
     hint: "L × B × H in cm, das fertige Möbel.",
     apply: (p,d) => fsTripleApply(p,"dims",d) },
 
-  carton: { label:"Kartonmaße", gapText:"Kartonmaß",
+  carton: { label:"Kartonmaße", gapText:"Kartonmaß", check: d => checkTriple(d,"carton"),
     form: p => fsTriple("carton", p.carton),
     hint: "L × B × H in cm. Für Fracht und Container zählt der Karton, nicht das Möbel — "
         + "der Unterschied macht schnell 20 % aus.",
@@ -4995,6 +5061,10 @@ const FIELDS = {
     apply: (p,d) => { p.material = d.material; } },
 
   moq: { label:"MOQ", gapText:"MOQ",
+    check: d => { const n = fsNum(d.moq);
+      if(d.moq !== "" && n == null) return "Das ist keine Zahl.";
+      if(n != null && n < 1) return "Mindestens ein Stück.";
+      return null; },
     form: p => fsText("moq", p.moq, "10", "numeric"),
     hint: "Mindestabnahme. Oft je Farbe, nicht je Artikel — im Zweifel nachfragen.",
     apply: (p,d) => { p.moq = fsNum(d.moq); } },
@@ -5067,12 +5137,28 @@ async function editField(pid, key){
   if(SHEET) SHEET.el.addEventListener("keydown", e => {
     if(e.key === "Enter" && e.target.tagName !== "TEXTAREA"){ e.preventDefault(); submitSheet(); }
   });
+  /* Nach einer abgelehnten Eingabe steht das Getippte wieder drin. */
+  if(FS_PRE && SHEET){
+    const pre = FS_PRE; FS_PRE = null;
+    SHEET.el.querySelectorAll("[data-k]").forEach(i => {
+      if(pre[i.dataset.k] !== undefined) i.value = pre[i.dataset.k];
+    });
+  }
   if(key === "dims" || key === "carton") setTimeout(fsVol, 40);
   if(key === "rate") setTimeout(fsScore, 40);
 
   const res = await pr;
   if(!res){ if(FS_HANDOFF) FS_HANDOFF = false; else FILL_QUEUE = null; return; }
 
+  if(f.check){
+    const bad = f.check(res);
+    if(bad){
+      toast(bad, 3200);
+      FS_PRE = res;                    /* damit die Eingabe nicht verloren geht */
+      await new Promise(r => setTimeout(r, 260));
+      return editField(pid, key);
+    }
+  }
   await f.apply(p, res);
   p.updatedAt = Date.now();
   await DB.put("products", p);
@@ -5120,7 +5206,7 @@ async function fsNewSupplier(){
   }
 }
 
-let FS_TARGET = null, FS_HANDOFF = false;
+let FS_TARGET = null, FS_HANDOFF = false, FS_PRE = null;
 function openField(pid, key){ FS_TARGET = pid; FILL_QUEUE = null; return editField(pid, key); }
 function fillAll(pid){
   const p = S.products.find(x => x.id === pid); if(!p) return;
@@ -5220,6 +5306,58 @@ function srowRO(label, val){
   }
   addEventListener("touchend", end, {passive:true});
   addEventListener("touchcancel", () => reset(true), {passive:true});
+})();
+</script>
+
+<script>
+"use strict";
+/* ============================================================
+   FEHLERNETZ
+   Auf einer Messe ist ein stiller Fehler das Schlimmste: man tippt
+   weiter und merkt erst abends im Hotel, dass nichts angekommen ist.
+   Alles, was sonst nur in der Konsole landet, wird hier sichtbar —
+   einmal, ruhig, ohne die Arbeit zu unterbrechen.
+   ============================================================ */
+(function(){
+  let last = "", lastAt = 0, count = 0;
+
+  function report(what, err){
+    const full = err ? [err.name, err.message].filter(Boolean).join(" ") || String(err) : "Unbekannt";
+    const msg = (err && err.message ? String(err.message) : full).slice(0,120);
+    const now = Date.now();
+    /* Derselbe Fehler in Folge wird nicht mehrfach gemeldet. */
+    if(msg === last && now - lastAt < 8000) return;
+    last = msg; lastAt = now; count++;
+    /* Voller Speicher ist der eine Fall, der eine echte Handlung braucht. */
+    if(/quota|storage|full/i.test(full)){
+      if(typeof toastAction === "function")
+        toastAction("Speicher voll — nichts wird mehr gesichert", "Platz schaffen",
+                    () => go("/backup"), 9000);
+      return;
+    }
+    if(typeof toast === "function") toast(what + ": " + msg, 5000);
+    try{
+      const box = JSON.parse(localStorage.getItem("source-errors") || "[]");
+      box.push({t:now, what, msg});
+      localStorage.setItem("source-errors", JSON.stringify(box.slice(-25)));
+    }catch(e){ /* auch das darf nichts kaputtmachen */ }
+  }
+
+  addEventListener("error", e => {
+    if(e && e.target && e.target !== window) return;   /* fehlende Bilder gehen uns nichts an */
+    report("Fehler", e && e.error ? e.error : (e && e.message));
+  });
+  addEventListener("unhandledrejection", e => report("Fehler", e && e.reason));
+  window.reportError2 = report;
+
+  /* Fehlerprotokoll fuer den Fall, dass etwas wiederholt schiefgeht. */
+  window.errorLog = function(){
+    try{ return JSON.parse(localStorage.getItem("source-errors") || "[]"); }
+    catch(e){ return []; }
+  };
+  window.clearErrorLog = function(){
+    try{ localStorage.removeItem("source-errors"); }catch(e){}
+  };
 })();
 </script>
 

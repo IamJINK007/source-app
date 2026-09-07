@@ -346,6 +346,44 @@ Vorschau heruntergerechnet.
 Und `createImageBitmap` bekommt jetzt `imageOrientation: "from-image"`. Ohne
 das ignoriert es die EXIF-Drehung — hochkant fotografierte Schränke lagen quer.
 
+## Wenn etwas schiefgeht
+
+Auf einer Messe ist ein **stiller** Fehler das Schlimmste: man tippt weiter und
+merkt erst abends im Hotel, dass nichts angekommen ist. Alles, was sonst nur in
+der Konsole landen würde — ein geworfener Fehler, ein abgelehntes Promise —
+wird jetzt einmal ruhig als Meldung sichtbar und in einem Protokoll der letzten
+25 Einträge abgelegt (`errorLog()` in der Konsole). Derselbe Fehler in Folge
+meldet sich nicht doppelt.
+
+Ein Sonderfall bekommt statt einer Meldung eine Handlung: **voller Speicher**.
+Dann steht dort „Platz schaffen" und der Weg führt direkt zum Backup. Und weil
+das schleichend passiert — dreihundert Produkte mit je zwei Fotos sind achtzig
+Megabyte — prüft die App den Füllstand beim Start, alle zehn Minuten und bei
+jeder Rückkehr in den Vordergrund. Ab 80 Prozent warnt ein Banner auf der
+Startseite, bevor etwas verloren geht.
+
+Fotos, die sich nicht lesen lassen, wurden an einer Stelle stumm verschluckt.
+Jetzt sagt die App, wie viele es waren — und ob der Grund der Speicher war und
+nicht das Bild.
+
+## Eingaben, die nicht stimmen können
+
+Die Feld-Sheets prüfen, bevor sie speichern, und sagen den Grund in einem Satz:
+ein negativer Preis, Buchstaben in einem Zahlenfeld, eine MOQ unter eins, ein
+Maß von null, ein Maß über 20 Metern (fast immer Millimeter statt Zentimeter),
+oder zwei von drei Maßen — ohne das dritte gibt es kein Volumen und damit keine
+Frachtrechnung. Das Getippte bleibt dabei stehen, man korrigiert nur die eine
+Stelle. Ein leeres Feld ist immer erlaubt: so löscht man einen Wert.
+
+## Lange Texte
+
+Ein Produktname ohne Leerzeichen — auf chinesischen Preisschildern eher Regel
+als Ausnahme — hat die Seite um 800 Pixel nach rechts gesprengt. Ursache waren
+Grid-Spuren mit `1fr`: die haben `min-width:auto` und wachsen mit einem
+unteilbaren Wort einfach mit. Alle Spuren stehen jetzt auf `minmax(0,1fr)`, und
+`#app` erlaubt Umbruch an beliebiger Stelle — Zahlen, Preise und Eingabefelder
+ausgenommen, die sollen zusammenbleiben.
+
 ## Auf dem iPhone installieren
 
 Die App braucht eine echte `https://`-Adresse — über `file://` funktionieren
